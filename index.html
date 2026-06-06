@@ -22,7 +22,7 @@
         .custom-file-label { background-color: #1976d2; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: 500; margin-bottom: 10px; }
         .btn { border: none; padding: 14px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
         .btn-primary { background-color: #34a853; color: white; }
-        .btn-diet { background-color: #0f9d58; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-surprise { background-color: #ff9800; color: white; }
         .btn-secondary { background-color: #f1f3f4; color: #3c4043; border: 1px solid #dadce0; }
         .btn-danger { background-color: #d93025; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 4px; }
         #uploadStatus { font-weight: bold; color: #1565c0; font-size: 13px; white-space: pre-line; margin-top: 5px; }
@@ -58,8 +58,8 @@
         </div>
 
         <div class="card">
-            <button id="generateBtn" class="btn btn-primary">Generate Any Meal</button>
-            <button id="generateVegEggBtn" class="btn btn-diet">🥚 Veg / Egg Plan</button>
+            <button id="generateBtn" class="btn btn-primary">what can I EAT today!</button>
+            <button id="surpriseBtn" class="btn btn-surprise">Surprise ME!</button>
             <button id="openDataBtn" class="btn btn-secondary">📊 Meal Data</button>
             
             <div id="suggestions" class="suggestion-list"></div>
@@ -88,11 +88,29 @@
         
         const EXCEL_DB_KEY = 'spreadsheetMealDatabase';
         
-        // Setup initial vegetarian/egg defaults
         const freshSeedData = {
-            breakfast: ["Poha", "Idli Sambhar", "Oatmeal", "Boiled Eggs"],
-            lunch: ["Roti with Mix Veg", "Dal Rice and Salad", "Egg Curry with Rice"],
-            dinner: ["Khichdi", "Paneer Kathi Roll", "Veg Soup"]
+            breakfast: ["Poha", "Idli Sambhar", "Oatmeal"],
+            lunch: ["Roti with Mix Veg", "Dal Rice and Salad"],
+            dinner: ["Khichdi", "Paneer Kathi Roll"]
+        };
+
+        // Complete Vegetarian (with Egg, strictly no meat) Surprise Meal Master Pool
+        const surpriseMasterPool = {
+            breakfast: [
+                "Veg Upma", "Masala Scrambled Eggs with Toast", "Appam with Vegetable Stew", 
+                "Methi Thepla with Curd", "Egg Bhurji Roll", "Vegetable Dalia", 
+                "Moong Dal Cheela", "Aloo Paratha", "Fluffy Egg Omelette with Mushrooms"
+            ],
+            lunch: [
+                "Paneer Bhurji with Tandoori Roti", "Chole Bhature with Pickle", "Veg Biryani with Raita", 
+                "Jeera Rice with Dal Makhani", "Aloo Shimla Mirch with Curd and Chapati", 
+                "Rajma Chawal", "Kadahi Paneer with Naan", "Veg Fried Rice with Chilli Paneer"
+            ],
+            dinner: [
+                "Vegetable Khichdi with Papad", "Egg Curry with Steamed Rice", "Palak Paneer with Roti", 
+                "Baingan Bharta with Missi Roti", "Lauki Kofta Curry with Chapati", 
+                "Malai Kofta with Rumali Roti", "Mushroom Masala with Paratha", "Pav Bhaji"
+            ]
         };
 
         let db = JSON.parse(localStorage.getItem(EXCEL_DB_KEY)) || freshSeedData;
@@ -204,43 +222,51 @@
             renderSpreadsheetModal();
         }
 
-        // Shared Generator Engine
-        function displaySuggestions(breakfastArr, lunchArr, dinnerArr) {
+        // Helper function to pick a random item from an array
+        const getRandomItem = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No meals added";
+
+        // Execution Core: Database Selection Engine
+        document.getElementById('generateBtn').addEventListener('click', function() {
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
-            const pick = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No matches found";
             
             const schema = [
-                { time: "Breakfast", name: pick(breakfastArr) },
-                { time: "Lunch", name: pick(lunchArr) },
-                { time: "Dinner", name: pick(dinnerArr) }
+                { time: "Breakfast", name: getRandomItem(db.breakfast) },
+                { time: "Lunch", name: getRandomItem(db.lunch) },
+                { time: "Dinner", name: getRandomItem(db.dinner) }
             ];
+            renderResults(schema, out);
+        });
+
+        // Execution Core: Surprise Me Selection Engine (Strictly outside DB)
+        document.getElementById('surpriseBtn').addEventListener('click', function() {
+            const out = document.getElementById('suggestions');
+            out.innerHTML = "";
+
+            // Filter logic to ensure chosen items are strictly not present inside current internal database
+            const filterSurprise = (pool, userDb) => {
+                const normalizedDb = userDb.map(i => i.toLowerCase().trim());
+                const filtered = pool.filter(i => !normalizedDb.includes(i.toLowerCase().trim()));
+                return filtered.length ? filtered : pool; // Fallback to entire pool if everything matches
+            };
+
+            const uniqueBreakfasts = filterSurprise(surpriseMasterPool.breakfast, db.breakfast);
+            const uniqueLunches = filterSurprise(surpriseMasterPool.lunch, db.lunch);
+            const uniqueDinners = filterSurprise(surpriseMasterPool.dinner, db.dinner);
+
+            const schema = [
+                { time: "Breakfast (Surprise)", name: getRandomItem(uniqueBreakfasts) },
+                { time: "Lunch (Surprise)", name: getRandomItem(uniqueLunches) },
+                { time: "Dinner (Surprise)", name: getRandomItem(uniqueDinners) }
+            ];
+            renderResults(schema, out);
+        });
+
+        function renderResults(schema, outputElement) {
             schema.forEach(s => {
-                out.insertAdjacentHTML('beforeend', `<div class="meal-suggestion"><span class="meal-time">${s.time}</span><span class="meal-name">${s.name}</span></div>`);
+                outputElement.insertAdjacentHTML('beforeend', `<div class="meal-suggestion"><span class="meal-time">${s.time}</span><span class="meal-name">${s.name}</span></div>`);
             });
         }
-
-        // Button 1: Unfiltered Generation
-        document.getElementById('generateBtn').addEventListener('click', function() {
-            displaySuggestions(db.breakfast, db.lunch, db.dinner);
-        });
-
-        // Button 2: Meat Filtering Algorithm (Veg + Egg Only)
-        document.getElementById('generateVegEggBtn').addEventListener('click', function() {
-            const meatKeywords = ['chicken', 'mutton', 'fish', 'pork', 'beef', 'meat', 'salmon', 'prawn', 'bacon', 'lamb', 'turkey', 'shrimp', 'crab'];
-            
-            const filterVegEgg = (arr) => arr.filter(item => {
-                const lowerItem = item.toLowerCase();
-                // Return true only if the item contains none of the meat keywords
-                return !meatKeywords.some(keyword => lowerItem.includes(keyword));
-            });
-
-            displaySuggestions(
-                filterVegEgg(db.breakfast),
-                filterVegEgg(db.lunch),
-                filterVegEgg(db.dinner)
-            );
-        });
 
         // UI Spreadsheet Modal Operations
         document.getElementById('openDataBtn').addEventListener('click', () => { dataModal.style.display = "flex"; renderSpreadsheetModal(); });
@@ -279,7 +305,7 @@
             if(input.value.trim()) { db[cat].push(input.value.trim()); input.value = ""; saveDatabase(); }
         };
 
-        // Export Array Database structures directly to Excel (.xlsx)
+        // Export Array Database structures directly out into native .xlsx binary standard
         document.getElementById('exportExcelBtn').addEventListener('click', function() {
             const maxLength = Math.max(db.breakfast.length, db.lunch.length, db.dinner.length);
             const sheetRows = [["Breakfast", "Lunch", "Dinner"]];
@@ -294,7 +320,7 @@
             XLSX.writeFile(workbook, "Meal_Sync_Database.xlsx");
         });
 
-        // Service Worker
+        // Self-Contained Service Worker Thread
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
