@@ -659,11 +659,10 @@ function saveDatabase() {
         🔄 Change
     </button>
 
-    <button class="action-bar-btn"
-        onclick="event.stopPropagation();openRecipeModal(encodeURIComponent(String(s.name)))">
-        📖 Recipe
-    </button>
-
+<button class="action-bar-btn"
+onclick="event.stopPropagation();openRecipeModal('${s.name.replace(/'/g, "\\'")}')">
+📖 Find Recipe
+</button>
 </div>       </div>
                 `);
             });
@@ -891,7 +890,7 @@ let activeRecipeMeal = "";
 
 function openRecipeModal(mealName) {
 
-    activeRecipeMeal = decodeURIComponent(mealName);
+    activeRecipeMeal = mealName;
 
     document.getElementById("recipeTitle").textContent =
         activeRecipeMeal;
