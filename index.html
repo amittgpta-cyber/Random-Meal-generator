@@ -1,12 +1,3 @@
-The issue preventing the **"Install app"** option from appearing is a strict security requirement in Chrome's PWA installation engine: **Chrome refuses to show the native installation prompt unless the Web App Manifest specifies valid application icons.** In the previous versions of the code, the icons array inside the base64-encoded manifest was empty `[]` or contained placeholder formatting errors, causing Chrome to reject its installability status and drop back to a basic "Add to Home screen" link.
-
-The code below explicitly builds a valid, unencoded, fully structured Web App Manifest directly into the HTML header. It points to high-quality system icons and sets your app shortcut properties correctly so Chrome on your Pixel 9 Pro will recognize it instantly as an installable app.
-
-### The Complete Updated `index.html` Code
-
-Replace your entire file code in your `Random-Meal-generator` repository with this complete version:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -842,5 +833,3 @@ Replace your entire file code in your `Random-Meal-generator` repository with th
     </script>
 </body>
 </html>
-
-```
