@@ -10,21 +10,37 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
-        body { font-family: system-ui, -apple-system, Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: system-ui, -apple-system, Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .app-container { max-width: 480px; width: 100%; }
-        h1 { color: #1a73e8; text-align: center; margin-bottom: 25px; font-size: 1.8rem; }
-        .upload-card { background: #e3f2fd; padding: 24px; border-radius: 16px; border: 2px dashed #90caf9; text-align: center; margin-bottom: 20px; }
+        h1 { color: #1a73e8; text-align: center; margin-bottom: 20px; font-size: 1.8rem; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
+        .upload-card { background: #e3f2fd; border: 2px dashed #90caf9; }
         .custom-file-input { display: none; }
-        .custom-file-label { background-color: #1976d2; color: white; padding: 14px 24px; border-radius: 8px; cursor: pointer; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-weight: 500; }
-        #uploadStatus { margin-top: 15px; font-weight: bold; color: #1565c0; font-size: 14px; white-space: pre-line; }
-        .gen-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-        #generateBtn { background-color: #34a853; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
-        .suggestion-list { margin-top: 20px; text-align: left; border-top: 1px solid #ddd; padding-top: 20px; }
+        .custom-file-label { background-color: #1976d2; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: 500; margin-bottom: 10px; }
+        .btn { border: none; padding: 14px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        .btn-primary { background-color: #34a853; color: white; }
+        .btn-secondary { background-color: #f1f3f4; color: #3c4043; border: 1px solid #dadce0; }
+        .btn-danger { background-color: #d93025; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 4px; }
+        #uploadStatus { font-weight: bold; color: #1565c0; font-size: 13px; white-space: pre-line; margin-top: 5px; }
+        .suggestion-list { margin-top: 15px; text-align: left; border-top: 1px solid #eee; padding-top: 15px; }
         .meal-suggestion { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
         .meal-time { font-weight: bold; color: #4285F4; }
         .meal-name { color: #333; font-weight: 500; }
+        
+        /* Modal Data View Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 450px; height: 80vh; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-body { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .table-section { margin-bottom: 20px; }
+        .table-section h4 { margin: 0 0 8px 0; color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 4px; }
+        .data-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f1f3f4; }
+        .data-cell { font-size: 14px; color: #3c4043; }
+        .add-row-form { display: flex; gap: 8px; margin-top: 8px; }
+        .add-input { flex: 1; padding: 6px; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -32,173 +48,230 @@
     <div class="app-container">
         <h1>Meal Sync Pro</h1>
 
-        <div class="upload-card">
-            <h2>1. Import Meal Source</h2>
-            <p>Upload screenshots, take camera photos, or select Word (.docx) and PDF documents.</p>
-            
-            <input type="file" id="fileInput" class="custom-file-input" accept="image/*,.pdf,.docx" capture="environment">
-            <label for="fileInput" class="custom-file-label">Scan or Upload File</label>
-            
+        <div class="card upload-card">
+            <h3>Import New Source</h3>
+            <p style="margin:0 0 12px 0; font-size:13px; color:#5f6368;">Accepts Screenshots, Camera Photos, PDF, Word, and Excel Sheets.</p>
+            <input type="file" id="fileInput" class="custom-file-input" accept="image/*,.pdf,.docx,.xlsx,.xls" capture="environment">
+            <label for="fileInput" class="custom-file-label">Choose File / Open Camera</label>
             <div id="uploadStatus"></div>
         </div>
 
-        <div class="gen-card">
-            <button id="generateBtn">Generate Today's Meals</button>
+        <div class="card">
+            <button id="generateBtn" class="btn btn-primary">Generate Today's Meals</button>
+            <button id="openDataBtn" class="btn btn-secondary">📊 Meal Data</button>
+            
             <div id="suggestions" class="suggestion-list"></div>
         </div>
     </div>
 
-    <script>
-        // Configure PDF.js Worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    <div id="dataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin:0; color:#1a73e8;">Excel Spreadsheet Database</h3>
+                <button id="closeDataBtn" style="background:none; border:none; font-size:24px; cursor:pointer; color:#5f6368;">&times;</button>
+            </div>
+            
+            <div style="margin-bottom: 12px; display:flex; gap:8px;">
+                <button id="exportExcelBtn" class="btn btn-secondary" style="margin:0; padding:8px; font-size:13px;">📥 Export .XLSX</button>
+                <button id="clearDbBtn" class="btn btn-secondary" style="margin:0; padding:8px; font-size:13px; color:#d93025;">🗑️ Reset Data</button>
+            </div>
 
-        const DB_KEY = 'omniSyncedMealData';
-        let mealDatabase = JSON.parse(localStorage.getItem(DB_KEY)) || {
-            breakfast: ["Oatmeal", "Poha", "Idli"],
-            lunch: ["Roti and Sabzi", "Rice and Dal", "Salad"],
-            dinner: ["Khichdi", "Paneer Wrap", "Soup"]
+            <div class="modal-body" id="modalTableBody">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // Clearing prior structured database keys to cleanly initialize new layout parameters
+        const EXCEL_DB_KEY = 'spreadsheetMealDatabase';
+        
+        const freshSeedData = {
+            breakfast: ["Poha", "Idli Sambhar", "Oatmeal"],
+            lunch: ["Roti with Mix Veg", "Dal Rice and Salad"],
+            dinner: ["Khichdi", "Paneer Kathi Roll"]
         };
 
+        let db = JSON.parse(localStorage.getItem(EXCEL_DB_KEY)) || freshSeedData;
+        if (!localStorage.getItem(EXCEL_DB_KEY)) localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
+
+        // Global DOM bindings
         const fileInput = document.getElementById('fileInput');
         const status = document.getElementById('uploadStatus');
+        const dataModal = document.getElementById('dataModal');
 
+        // File Router Engine
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
-            const fileName = file.name.toLowerCase();
+            const name = file.name.toLowerCase();
             status.style.color = "#1565c0";
 
-            // Router: Determine file format and processing pipeline
             if (file.type.match('image.*')) {
-                status.innerText = "Processing image/camera frame via OCR...";
-                processImageOCR(file);
-            } else if (fileName.endsWith('.pdf')) {
-                status.innerText = "Reading text layers from PDF...";
+                status.innerText = "Running Image OCR text scanning Engine...";
+                Tesseract.recognize(file, 'eng').then(({ data: { text } }) => { parseTextPool(text); });
+            } else if (name.endsWith('.pdf')) {
+                status.innerText = "Extracting raw PDF text lines...";
                 processPDF(file);
-            } else if (fileName.endsWith('.docx')) {
-                status.innerText = "Extracting formatting layers from Word Document...";
+            } else if (name.endsWith('.docx')) {
+                status.innerText = "Extracting Word text sequences...";
                 processDocx(file);
-            } else {
-                status.innerText = "Unsupported file format.";
-                status.style.color = "#c62828";
+            } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+                status.innerText = "Processing structured Excel Binary Matrix...";
+                processExcel(file);
             }
         });
 
-        // Pipeline A: OCR Processing Engine
-        function processImageOCR(file) {
-            Tesseract.recognize(file, 'eng')
-                .then(({ data: { text } }) => { processExtractedText(text); })
-                .catch(err => { handleProcessError("OCR Failed"); });
-        }
-
-        // Pipeline B: Native Digital PDF Engine
+        // Native Document Extractors
         function processPDF(file) {
             const reader = new FileReader();
             reader.onload = function() {
-                const typedarray = new Uint8Array(this.result);
-                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-                    let totalSections = pdf.numPages;
-                    let countPromises = [];
-                    
-                    for (let i = 1; i <= totalSections; i++) {
-                        countPromises.push(pdf.getPage(i).then(page => {
-                            return page.getTextContent().then(textContent => {
-                                return textContent.items.map(item => item.str).join(' ');
-                            });
-                        }));
+                const arr = new Uint8Array(this.result);
+                pdfjsLib.getDocument(arr).promise.then(pdf => {
+                    let pages = [];
+                    for(let i=1; i<=pdf.numPages; i++) {
+                        pages.push(pdf.getPage(i).then(p => p.getTextContent().then(t => t.items.map(m => m.str).join(' '))));
                     }
-                    
-                    Promise.all(countPromises).then(pageTexts => {
-                        processExtractedText(pageTexts.join('\n'));
-                    });
-                }).catch(err => { handleProcessError("PDF Read Error"); });
+                    Promise.all(pages).then(res => parseTextPool(res.join('\n')));
+                });
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Pipeline C: XML Native Word Engine
         function processDocx(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const arrayBuffer = e.target.result;
-                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-                    .then(function(result) {
-                        processExtractedText(result.value);
-                    })
-                    .catch(function(err) { handleProcessError("Word Read Error"); });
+                mammoth.extractRawText({ arrayBuffer: e.target.result }).then(res => parseTextPool(res.value));
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Shared Logic: Standard Formatting, Deduplication and Database Assignment
-        function processExtractedText(rawText) {
-            const lines = rawText.split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 2);
-
-            if (lines.length === 0) {
-                status.innerText = "File processing complete, but no clear meal names were found inside.";
-                status.style.color = "#c62828";
-                return;
-            }
-
-            lines.forEach(line => {
-                const lowerLine = line.toLowerCase();
+        function processExcel(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                 
-                if (lowerLine.includes('breakfast') || lowerLine.includes('morning')) {
-                    mealDatabase.breakfast.push(cleanLine(line, /breakfast/i));
-                } else if (lowerLine.includes('lunch') || lowerLine.includes('afternoon')) {
-                    mealDatabase.lunch.push(cleanLine(line, /lunch/i));
-                } else if (lowerLine.includes('dinner') || lowerLine.includes('night')) {
-                    mealDatabase.dinner.push(cleanLine(line, /dinner/i));
-                } else {
-                    // Balancing fallback logic strategy
-                    const minLength = Math.min(mealDatabase.breakfast.length, mealDatabase.lunch.length, mealDatabase.dinner.length);
-                    if (mealDatabase.breakfast.length === minLength) mealDatabase.breakfast.push(line);
-                    else if (mealDatabase.lunch.length === minLength) mealDatabase.lunch.push(line);
-                    else mealDatabase.dinner.push(line);
+                if(json.length > 1) {
+                    // Expects Column Headers: Breakfast, Lunch, Dinner
+                    const headers = json[0].map(h => String(h).toLowerCase().trim());
+                    const bIdx = headers.indexOf('breakfast');
+                    const lIdx = headers.indexOf('lunch');
+                    const dIdx = headers.indexOf('dinner');
+
+                    for(let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if(bIdx > -1 && row[bIdx]) db.breakfast.push(String(row[bIdx]).trim());
+                        if(lIdx > -1 && row[lIdx]) db.lunch.push(String(row[lIdx]).trim());
+                        if(dIdx > -1 && row[dIdx]) db.dinner.push(String(row[dIdx]).trim());
+                    }
+                    saveDatabase();
+                    status.innerText = "Excel sheet merged perfectly!";
+                    status.style.color = "#2e7d32";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Context Parser Logic
+        function parseTextPool(text) {
+            const chunks = text.replace(/[\r\\•]/g, '\n').split(/[\n,\;\•]|\s{3,}/).map(c => c.trim()).filter(c => c.length > 2);
+            chunks.forEach(chunk => {
+                const low = chunk.toLowerCase();
+                if (low === 'breakfast' || low === 'lunch' || low === 'dinner') return;
+                
+                if (low.includes('breakfast') || low.includes('morning')) db.breakfast.push(chunk.replace(/breakfast/i,'').replace(/[:\-–—]/g,'').trim());
+                else if (low.includes('lunch') || low.includes('afternoon')) db.lunch.push(chunk.replace(/lunch/i,'').replace(/[:\-–—]/g,'').trim());
+                else if (low.includes('dinner') || low.includes('night')) db.dinner.push(chunk.replace(/dinner/i,'').replace(/[:\-–—]/g,'').trim());
+                else {
+                    const target = Math.min(db.breakfast.length, db.lunch.length, db.dinner.length);
+                    if (db.breakfast.length === target) db.breakfast.push(chunk);
+                    else if (db.lunch.length === target) db.lunch.push(chunk);
+                    else db.dinner.push(chunk);
                 }
             });
-
-            localStorage.setItem(DB_KEY, JSON.stringify(mealDatabase));
-            status.innerText = `Successfully loaded text entry updates!\nTotal choices: Breakfast (${mealDatabase.breakfast.length}) | Lunch (${mealDatabase.lunch.length}) | Dinner (${mealDatabase.dinner.length})`;
+            saveDatabase();
+            status.innerText = "Text processed and appended to Grid Matrix!";
             status.style.color = "#2e7d32";
         }
 
-        function cleanLine(text, regex) {
-            return text.replace(regex, '').replace(/[:\-–—]/g, '').trim();
+        function saveDatabase() {
+            localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
+            renderSpreadsheetModal();
         }
 
-        function handleProcessError(msg) {
-            status.innerText = `${msg}. Ensure structural data or file format isn't corrupted.`;
-            status.style.color = "#c62828";
-        }
-
-        // Execution Generation Logic Core
+        // Generator Execution
         document.getElementById('generateBtn').addEventListener('click', function() {
-            const suggestionDiv = document.getElementById('suggestions');
-            suggestionDiv.innerHTML = ""; 
-
-            const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-            const meals = [
-                { time: "Breakfast", name: getRandom(mealDatabase.breakfast) },
-                { time: "Lunch", name: getRandom(mealDatabase.lunch) },
-                { time: "Dinner", name: getRandom(mealDatabase.dinner) }
+            const out = document.getElementById('suggestions');
+            out.innerHTML = "";
+            const pick = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No meals added";
+            
+            const schema = [
+                { time: "Breakfast", name: pick(db.breakfast) },
+                { time: "Lunch", name: pick(db.lunch) },
+                { time: "Dinner", name: pick(db.dinner) }
             ];
-
-            meals.forEach(meal => {
-                suggestionDiv.insertAdjacentHTML('beforeend', `
-                    <div class="meal-suggestion">
-                        <span class="meal-time">${meal.time}</span>
-                        <span class="meal-name">${meal.name}</span>
-                    </div>
-                `);
+            schema.forEach(s => {
+                out.insertAdjacentHTML('beforeend', `<div class="meal-suggestion"><span class="meal-time">${s.time}</span><span class="meal-name">${s.name}</span></div>`);
             });
         });
 
-        // Production-Ready Service Worker Routine
+        // UI Spreadsheet Modal Operations
+        document.getElementById('openDataBtn').addEventListener('click', () => { dataModal.style.display = "flex"; renderSpreadsheetModal(); });
+        document.getElementById('closeDataBtn').addEventListener('click', () => dataModal.style.display = "none");
+        document.getElementById('clearDbBtn').addEventListener('click', () => { if(confirm("Clear current database items?")) { db={breakfast:[],lunch:[],dinner:[]}; saveDatabase(); }});
+
+        function renderSpreadsheetModal() {
+            const container = document.getElementById('modalTableBody');
+            container.innerHTML = "";
+
+            ['breakfast', 'lunch', 'dinner'].forEach(category => {
+                let rowsHtml = '';
+                db[category].forEach((item, index) => {
+                    rowsHtml += `
+                        <div class="data-row">
+                            <span class="data-cell">${item}</span>
+                            <button class="btn-danger" onclick="deleteItem('${category}', ${index})">Delete</button>
+                        </div>`;
+                });
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="table-section">
+                        <h4>${category.toUpperCase()} (${db[category].length} items)</h4>
+                        ${rowsHtml}
+                        <div class="add-row-form">
+                            <input type="text" id="add-${category}" class="add-input" placeholder="Add new ${category}...">
+                            <button class="btn-primary" style="padding:6px 12px; font-size:13px; width:auto; margin:0;" onclick="addItem('${category}')">Add</button>
+                        </div>
+                    </div>`);
+            });
+        }
+
+        window.deleteItem = function(cat, index) { db[cat].splice(index, 1); saveDatabase(); };
+        window.addItem = function(cat) {
+            const input = document.getElementById(`add-${cat}`);
+            if(input.value.trim()) { db[cat].push(input.value.trim()); input.value = ""; saveDatabase(); }
+        };
+
+        // Export Array Database structures directly out into native .xlsx binary standard
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const maxLength = Math.max(db.breakfast.length, db.lunch.length, db.dinner.length);
+            const sheetRows = [["Breakfast", "Lunch", "Dinner"]];
+            
+            for(let i=0; i<maxLength; i++) {
+                sheetRows.push([db.breakfast[i] || "", db.lunch[i] || "", db.dinner[i] || ""]);
+            }
+
+            const worksheet = XLSX.utils.aoa_to_sheet(sheetRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Meals");
+            XLSX.writeFile(workbook, "Meal_Sync_Database.xlsx");
+        });
+
+        // Self-Contained Service Worker Thread
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
