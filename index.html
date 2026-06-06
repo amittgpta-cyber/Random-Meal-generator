@@ -327,6 +327,44 @@
             </div>
         </div>
     </div>
+<!-- Recipe Modal -->
+<div id="recipeModal" class="modal">
+    <div class="modal-content" style="height:auto; max-height:90vh;">
+        <div class="modal-header">
+            <h3 id="recipeTitle">Recipe</h3>
+            <button id="closeRecipeBtn"
+                style="background:none;border:none;font-size:28px;cursor:pointer;color:var(--md-sys-color-text-variant);">
+                &times;
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <div id="recipeIngredients"></div>
+
+            <div id="recipeSteps"
+                 style="margin-top:16px;"></div>
+
+            <div id="recipeNutrition"
+                 style="margin-top:16px;"></div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+
+                    <button id="youtubeRecipeBtn"
+                        class="btn btn-secondary">
+                    ▶ YouTube
+                </button>
+
+                <button id="googleRecipeBtn"
+                        class="btn btn-secondary">
+                    🔍 Google
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -576,7 +614,7 @@
 
             currentSuggestionsState.forEach((s, index) => {
                 out.insertAdjacentHTML('beforeend', `
-                    <div class="meal-card" id="suggestion-card-${index}" onclick="enableInlineCardEditing(${index})">
+                    <div class="meal-card" id="suggestion-card-${index}" onclick="openRecipeModal('${s.name.replace(/'/g, "\\'")}')">
                         <div class="meal-details" id="suggestion-details-${index}">
                             <span class="meal-time">${s.time}</span>
                             <span class="meal-name" id="suggestion-name-text-${index}">${s.name}</span>
@@ -584,10 +622,23 @@
                         </div>
                         <!-- Layout row button mapping components modified to invert alignment positions -->
                         <div class="card-explicit-actions-bar">
-                            <button class="action-bar-btn btn-action-lock" onclick="lockChoiceIntoExclusionMemory(event, ${index})">I'll EAT IT</button>
-                            <button class="action-bar-btn btn-action-change" onclick="refreshSpecificCategoryCard(event, ${index})">Change</button>
-                        </div>
-                    </div>
+
+    <button class="action-bar-btn btn-action-lock"
+        onclick="lockChoiceIntoExclusionMemory(event, ${index})">
+        ✅ Confirm
+    </button>
+
+    <button class="action-bar-btn btn-action-change"
+        onclick="refreshSpecificCategoryCard(event, ${index})">
+        🔄 Change
+    </button>
+
+    <button class="action-bar-btn"
+        onclick="event.stopPropagation();openRecipeModal('${encodeURIComponent(s.name)}')">
+        📖 Recipe
+    </button>
+
+</div>       </div>
                 `);
             });
         }
@@ -814,7 +865,82 @@
             XLSX.utils.book_append_sheet(workbook, worksheet, "Meals");
             XLSX.writeFile(workbook, "Meal_Sync_Database.xlsx");
         });
+// ─────────────────────────────────────────────
+// Recipe Modal Logic
+// ─────────────────────────────────────────────
 
+let activeRecipeMeal = "";
+
+function openRecipeModal(mealName) {
+
+    activeRecipeMeal = decodeURIComponent(mealName);
+
+    document.getElementById("recipeTitle").textContent =
+        activeRecipeMeal;
+
+    document.getElementById("recipeIngredients").innerHTML =
+    `
+    <div style="
+        padding:16px;
+        background:var(--md-sys-color-surface-variant);
+        border-radius:12px;
+        line-height:1.6;
+    ">
+        <h4 style="margin-top:0;">
+            ${activeRecipeMeal}
+        </h4>
+
+        <p>
+            Search online for:
+        </p>
+
+        <ul>
+            <li>Ingredients</li>
+            <li>Cooking Steps</li>
+            <li>Nutritional Information</li>
+            <li>Video Tutorials</li>
+        </ul>
+    </div>
+    `;
+
+    document.getElementById("recipeSteps").innerHTML = "";
+    document.getElementById("recipeNutrition").innerHTML = "";
+
+    document.getElementById("recipeModal").style.display =
+        "flex";
+}
+
+document
+    .getElementById("closeRecipeBtn")
+    .addEventListener("click", () => {
+
+        document.getElementById("recipeModal").style.display =
+            "none";
+    });
+
+document
+    .getElementById("googleRecipeBtn")
+    .addEventListener("click", () => {
+
+        if (!activeRecipeMeal) return;
+
+        window.open(
+            `https://www.google.com/search?q=${encodeURIComponent(activeRecipeMeal + " recipe")}`,
+            "_blank"
+        );
+    });
+
+document
+    .getElementById("youtubeRecipeBtn")
+    .addEventListener("click", () => {
+
+        if (!activeRecipeMeal) return;
+
+        window.open(
+            `https://www.youtube.com/results?search_query=${encodeURIComponent(activeRecipeMeal + " recipe")}`,
+            "_blank"
+        );
+    });
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
