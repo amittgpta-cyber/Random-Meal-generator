@@ -1,12 +1,14 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Meal Sync Pro</title>
+    
     <meta name="theme-color" content="#121212">
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk1lYWwgU3luYyIsICJzaG9ydF9uYW1lIjogIk1lYWxTeW5jIiwgInN0YXJ0X3VybCI6ICIuIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLCAidGhlbWVfY29sb3IiOiAiIzEyMTIxMiIsImljb25zIjpbXX0=">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk1lYWwgU3luYyIsICJzaG9ydF9uYW1lIjogIk1lYWxTeW5jIiwgInN0YXJ0X3VybCI6ICIuLyIsICJkaXNwbGF5IjogImZ1bGxzY3JlZW4iLCAidGhlbWVfY29sb3IiOiAiIzEyMTIxMiIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLCAiaWNvbnMiOiBbe3M6IjE5MngxOTIiLCJ0IjoiaW1hZ2UvcG5nIiwic3JjIjoiaHR0cHM6Ly92aWEucGxhY2Vob2xkZ3IuY29tLzE5MiJ9XX0=">
     
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -34,7 +36,7 @@
             background-color: var(--md-sys-color-background); 
             color: var(--md-sys-color-text);
             margin: 0; 
-            padding: 20px 15px 210px 15px; 
+            padding: calc(20px + env(safe-area-inset-top)) 15px 210px 15px; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
@@ -95,7 +97,6 @@
         }
         .btn:active { transform: scale(0.98); }
 
-        /* Integrated Bottom Fixed Action Console Zone */
         .bottom-action-console {
             position: fixed;
             bottom: 0;
@@ -592,5 +593,3 @@
     </script>
 </body>
 </html>
-
-```
