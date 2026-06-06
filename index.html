@@ -41,7 +41,7 @@
             background-color: var(--md-sys-color-background); 
             color: var(--md-sys-color-text);
             margin: 0; 
-            padding: calc(24px + env(safe-area-inset-top)) 20px calc(290px + env(safe-area-inset-bottom)) 20px; 
+            padding: calc(24px + env(safe-area-inset-top)) 20px calc(320px + env(safe-area-inset-bottom)) 20px; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
@@ -91,11 +91,11 @@
         
         .btn { 
             border: none; 
-            padding: 16px 24px; 
+            padding: 18px 24px; 
             border-radius: 100px; 
-            font-size: 15px; 
+            font-size: 16px; 
             cursor: pointer; 
-            font-weight: 500; 
+            font-weight: 600; 
             width: 100%; 
             box-sizing: border-box; 
             display: flex;
@@ -118,7 +118,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 12px; 
+            gap: 14px; 
             z-index: 99;
             pointer-events: auto;
         }
@@ -126,36 +126,36 @@
         .btn-fab-main { 
             background-color: var(--md-sys-color-secondary); 
             color: var(--md-sys-color-on-secondary);
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             letter-spacing: 0.2px;
-            padding: 18px 24px;
+            padding: 20px 24px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
 
         .btn-fab-surprise { 
             background-color: var(--md-sys-color-surprise); 
             color: var(--md-sys-color-on-surprise);
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
-            padding: 16px 24px;
+            padding: 18px 24px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         }
 
         .btn-fab-fridge {
             background-color: var(--md-sys-color-fridge);
             color: var(--md-sys-color-on-fridge);
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
-            padding: 16px 24px;
+            padding: 18px 24px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         }
 
-        .btn-secondary { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-text); }
-        .btn-danger { background-color: #f44336; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 8px; display: inline-block; margin: 0; }
+        .btn-secondary { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-text); padding: 12px 20px; font-size: 14px; }
+        .btn-danger { background-color: #f44336; color: white; padding: 8px 16px; font-size: 13px; width: auto; border-radius: 10px; display: inline-block; margin: 0; font-weight: 600; }
         
         .import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .import-label { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-text); padding: 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
+        .import-label { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-text); padding: 166px; padding: 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; border: 1px solid rgba(255,255,255,0.03); }
         .custom-file-input { display: none; }
         
         #uploadStatus { font-weight: 500; color: var(--md-sys-color-primary); font-size: 13px; white-space: pre-line; margin-bottom: 16px; text-align: center; }
@@ -163,76 +163,97 @@
         .suggestion-list { 
             display: flex; 
             flex-direction: column; 
-            gap: 16px; 
+            gap: 20px; 
             margin-top: 10px;
             margin-bottom: 20px;
             width: 100%;
         }
         
+        /* Enriched and significantly enlarged container boxes on both main page and modals */
         .meal-card {
             background: var(--md-sys-color-surface-variant);
-            border-radius: 24px;
+            border-radius: 28px;
             border: 1px solid rgba(255,255,255,0.03);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
             cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
             position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 140px; /* Enhanced height scale parameters to prevent tight visual compression loops */
         }
         .meal-card.locked-state {
             border: 1px solid var(--md-sys-color-success);
-            background-color: rgba(52, 168, 83, 0.05);
+            background-color: rgba(52, 168, 83, 0.04);
         }
-        .meal-card:hover { background-color: #3d3d3d; }
-        .meal-card.locked-state:hover { background-color: rgba(52, 168, 83, 0.08); }
+        .meal-card:hover { background-color: #333333; }
+        .meal-card.locked-state:hover { background-color: rgba(52, 168, 83, 0.06); }
 
-        .meal-details { padding: 20px 76px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
-        .meal-time { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.5px; }
-        .meal-name { font-size: 18px; font-weight: 400; color: var(--md-sys-color-text); }
-        .ai-badge { align-self: flex-start; font-size: 10px; font-weight: bold; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .meal-details { padding: 24px 24px 16px 24px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+        .meal-time { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.7px; }
+        .meal-name { font-size: 21px; font-weight: 400; color: var(--md-sys-color-text); line-height: 1.3; }
+        .ai-badge { align-self: flex-start; font-size: 11px; font-weight: 700; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 4px 10px; border-radius: 6px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Card Controls Column Layout Stack */
-        .card-controls-pane {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
+        /* Explicit action command bar stacked neatly inside container bounds framework layout */
+        .card-explicit-actions-bar {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 5;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            background-color: rgba(0, 0, 0, 0.18);
+            width: 100%;
         }
-
-        /* Scaled up action triggers for enhanced tactile mobile feedback dimensions */
-        .card-action-trigger {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.06);
+        
+        /* Drastically boosted explicit text command layouts for thumb proximity metrics accessibility */
+        .action-bar-btn {
+            flex: 1;
             border: none;
+            background: transparent;
+            padding: 18px 12px;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s, color 0.2s, transform 0.1s ease;
+            gap: 8px;
+            transition: background-color 0.2s, color 0.2s;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
         }
         
-        .trigger-change { color: var(--md-sys-color-text-variant); }
-        .trigger-change:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--md-sys-color-primary); }
+        .btn-action-change {
+            color: var(--md-sys-color-text-variant);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .btn-action-change:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--md-sys-color-primary);
+        }
         
-        .trigger-confirm { color: var(--md-sys-color-text-variant); }
-        .trigger-confirm:hover { background-color: rgba(52, 168, 83, 0.2); color: var(--md-sys-color-fridge); }
-        .meal-card.locked-state .trigger-confirm { background-color: var(--md-sys-color-success); color: white; }
-
-        .card-action-trigger:active { transform: scale(0.88); }
+        .btn-action-lock {
+            color: var(--md-sys-color-fridge);
+        }
+        .btn-action-lock:hover {
+            background-color: rgba(133, 227, 179, 0.08);
+        }
+        
+        .meal-card.locked-state .btn-action-lock {
+            background-color: var(--md-sys-color-success);
+            color: var(--md-sys-color-on-success);
+        }
+        .meal-card.locked-state .btn-action-change {
+            opacity: 0.2;
+            pointer-events: none;
+        }
 
         .inline-edit-input {
             background: var(--md-sys-color-background);
             color: var(--md-sys-color-text);
-            border: 1px solid var(--md-sys-color-primary);
-            border-radius: 8px;
+            border: 2px solid var(--md-sys-color-primary);
+            border-radius: 12px;
             font-size: 18px;
-            padding: 8px 12px;
-            margin-top: 4px;
+            padding: 10px 14px;
+            margin-top: 6px;
             width: 100%;
             box-sizing: border-box;
             font-family: inherit;
@@ -242,38 +263,41 @@
             background-color: #34a853;
             color: white;
             border: none;
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 12px;
+            border-radius: 24px;
+            padding: 8px 20px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             align-self: flex-end;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
+        /* Enriched Modal container sizes mapping properties correctly across dimensions */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-        .modal-content { background: var(--md-sys-color-surface); width: 92%; max-width: 500px; height: 90vh; border-radius: 32px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .modal-header h3 { font-size: 1.75rem; font-weight: 400; margin: 0; }
+        .modal-content { background: var(--md-sys-color-surface); width: 94%; max-width: 520px; height: 90vh; border-radius: 36px; padding: 28px; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 1.85rem; font-weight: 400; margin: 0; }
 
         .modal-body { flex: 1; overflow-y: auto; padding-right: 4px; -webkit-overflow-scrolling: touch; }
-        .table-section { margin-bottom: 24px; }
-        .table-section h4 { margin: 0 0 12px 0; color: var(--md-sys-color-primary); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px; font-weight: 500; font-size: 14px; letter-spacing: 0.3px; }
-        .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .data-cell { font-size: 14px; color: var(--md-sys-color-text-variant); }
+        .table-section { margin-bottom: 28px; }
+        .table-section h4 { margin: 0 0 14px 0; color: var(--md-sys-color-primary); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; }
         
-        .unified-add-form { background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.04); }
-        .unified-add-form h4 { margin: 0 0 12px 0; color: var(--md-sys-color-primary); font-weight: 500; font-size: 14px; }
-        .unified-input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-        .add-input { padding: 12px 16px; border: 1px solid rgba(255,255,255,0.1); background: var(--md-sys-color-background); color: var(--md-sys-color-text); border-radius: 12px; font-size: 14px; box-sizing: border-box; width: 100%; -webkit-appearance: none; }
+        /* Enlarged rows container elements inside source layout panels dashboards */
+        .data-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.01); margin-bottom: 6px; border-radius: 12px; }
+        .data-cell { font-size: 16px; color: var(--md-sys-color-text); font-weight: 400; }
+        
+        .unified-add-form { background: var(--md-sys-color-surface-variant); padding: 20px; border-radius: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.04); }
+        .unified-add-form h4 { margin: 0 0 14px 0; color: var(--md-sys-color-primary); font-weight: 600; font-size: 15px; }
+        .unified-input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+        .add-input { padding: 14px 18px; border: 1px solid rgba(255,255,255,0.1); background: var(--md-sys-color-background); color: var(--md-sys-color-text); border-radius: 14px; font-size: 15px; box-sizing: border-box; width: 100%; -webkit-appearance: none; }
         .add-input:focus { outline: none; border-color: var(--md-sys-color-primary); }
 
-        .excel-table-container { width: 100%; overflow-x: auto; background: var(--md-sys-color-background); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px; max-height: 60vh; -webkit-overflow-scrolling: touch; }
-        .excel-grid { width: 100%; border-collapse: collapse; min-width: 400px; }
-        .excel-grid th { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-primary); font-weight: 500; font-size: 14px; padding: 12px 8px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10; }
-        .excel-grid td { padding: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .grid-cell-input { width: 100%; border: none; background: transparent; color: var(--md-sys-color-text); font-size: 14px; padding: 8px; box-sizing: border-box; border-radius: 6px; }
-        .grid-cell-input:focus { background: var(--md-sys-color-surface-variant); outline: 1px solid var(--md-sys-color-primary); }
+        .excel-table-container { width: 100%; overflow-x: auto; background: var(--md-sys-color-background); border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); margin-top: 12px; max-height: 55vh; -webkit-overflow-scrolling: touch; }
+        .excel-grid { width: 100%; border-collapse: collapse; min-width: 440px; }
+        .excel-grid th { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-primary); font-weight: 600; font-size: 15px; padding: 14px 10px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10; }
+        .excel-grid td { padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .grid-cell-input { width: 100%; border: none; background: transparent; color: var(--md-sys-color-text); font-size: 15px; padding: 10px; box-sizing: border-box; border-radius: 8px; }
+        .grid-cell-input:focus { background: var(--md-sys-color-surface-variant); outline: 2px solid var(--md-sys-color-primary); }
     </style>
 </head>
 <body>
@@ -281,7 +305,7 @@
     <div class="app-container">
         <header>
             <h1>Meal Sync Pro</h1>
-            <button id="openDataBtn" class="btn btn-secondary" style="width:auto; margin:0; padding:10px 18px; font-size:14px; border-radius:100px;">📊 Meal Data</button>
+            <button id="openDataBtn" class="btn btn-secondary" style="width:auto; margin:0; border-radius:100px;">📊 Meal Data</button>
         </header>
 
         <main id="suggestions" class="suggestion-list"></main>
@@ -289,7 +313,7 @@
         <div class="bottom-action-console">
             <button id="fridgeBtn" class="btn btn-fab-fridge">🥦 What's in the Fridge!</button>
             <button id="surpriseBtn" class="btn btn-fab-surprise">✨ Surprise ME!</button>
-            <button id="generateBtn" class="btn btn-fab-main">🍽️ what can I EAT today!</button>
+            <button id="generateBtn" class="btn btn-fab-main">🍽️ What to EAT Today?</button>
         </div>
     </div>
 
@@ -313,12 +337,12 @@
                 <div id="uploadStatus"></div>
                 
                 <div style="margin-bottom: 16px; display:flex; gap:8px;">
-                    <button id="excelToggleBtn" class="btn btn-secondary" style="margin:0; padding:10px; font-size:13px; flex:1; border-radius:12px; background-color: #34a853; color: white; border: none;">📝 Excel Edit</button>
-                    <button id="exportExcelBtn" class="btn btn-secondary" style="margin:0; padding:10px; font-size:13px; flex:1; border-radius:12px;">📥 Export Excel</button>
-                    <button id="clearDbBtn" class="btn btn-secondary" style="margin:0; padding:10px; font-size:13px; color:var(--md-sys-color-error); flex:0.5; border-radius:12px;">🗑️ Reset</button>
+                    <button id="excelToggleBtn" class="btn btn-secondary" style="margin:0; flex:1; border-radius:12px; background-color: #34a853; color: white; border: none;">📝 Excel Edit</button>
+                    <button id="exportExcelBtn" class="btn btn-secondary" style="margin:0; flex:1; border-radius:12px;">📥 Export Excel</button>
+                    <button id="clearDbBtn" class="btn btn-secondary" style="margin:0; color:var(--md-sys-color-error); flex:0.5; border-radius:12px;">🗑️ Reset</button>
                 </div>
 
-                <!-- Unified Three Box Category Input Component -->
+                <!-- Unified Three Box Category Input Component Container -->
                 <div class="unified-add-form">
                     <h4>Add Custom Item Entry</h4>
                     <div class="unified-input-group">
@@ -537,7 +561,6 @@
             return calculationPool[Math.floor(Math.random() * calculationPool.length)];
         }
 
-        // Commits choice selection to historical exclusion memory logging arrays
         function logSingleMealSelection(mealName, timeOfDay) {
             if (mealName === "No meals added") return;
             aiHistory.push({ time: timeOfDay, name: mealName });
@@ -607,16 +630,14 @@
                             ${s.isSurprise ? '' : '<span class="ai-badge">AI Optimized</span>'}
                         </div>
                         
-                        <!-- Ergonomic Controls Stack Console Panel Row Layout Column mapping -->
-                        <div class="card-controls-pane">
-                            <!-- Change / Reroll Action Trigger -->
-                            <button class="card-action-trigger trigger-change" title="Change" onclick="refreshSpecificCategoryCard(event, ${index})">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        <div class="card-explicit-actions-bar">
+                            <button class="action-bar-btn btn-action-change" onclick="refreshSpecificCategoryCard(event, ${index})">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                Change
                             </button>
-                            
-                            <!-- I'll EAT IT / Lock Option Choice Selection Memory Lock Component -->
-                            <button class="card-action-trigger trigger-confirm" title="I'll EAT IT" onclick="lockChoiceIntoExclusionMemory(event, ${index})">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <button class="action-bar-btn btn-action-lock" onclick="lockChoiceIntoExclusionMemory(event, ${index})">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                I'll EAT IT
                             </button>
                         </div>
                     </div>
@@ -624,37 +645,36 @@
             });
         }
 
-        // Commits and locks selected card choice into 7 day recurrence suppression algorithms memory registers
         window.lockChoiceIntoExclusionMemory = function(event, index) {
-            event.stopPropagation(); // Protect container overlay click intercepts
+            event.stopPropagation(); 
             
             const cardState = currentSuggestionsState[index];
-            const cardElement = document.getElementById(`suggestion-card-${index}`);
-            const baseCategoryLabel = cardState.time.split(' ')[0]; // Breakfast, Lunch, Dinner
+            const cardElement = document.getElementById('suggestion-card-' + index);
+            const baseCategoryLabel = cardState.time.split(' ')[0]; 
 
-            if (cardState.isLocked) return; // Prevent double trigger executions
+            if (cardState.isLocked) return; 
 
-            // Append item specifically into active exclusions lists mapping nodes
             logSingleMealSelection(cardState.name, baseCategoryLabel);
             
-            // Render visual confirmation locked layout metrics styles status
             cardState.isLocked = true;
             cardElement.classList.add('locked-state');
 
-            // Brief status toast validation trigger feedback alert layout
             const statusBadge = document.createElement('span');
             statusBadge.className = 'ai-badge';
             statusBadge.style.backgroundColor = 'var(--md-sys-color-success)';
             statusBadge.style.color = 'white';
-            statusBadge.innerText = "✓ Fixed in Memory";
-            document.getElementById(`suggestion-details-${index}`).appendChild(statusBadge);
+            statusBadge.innerText = "✓ Choice Saved";
+            document.getElementById('suggestion-details-' + index).appendChild(statusBadge);
+            
+            const lockBtn = cardElement.querySelector('.btn-action-lock');
+            if (lockBtn) lockBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Confirmed';
         };
 
         window.refreshSpecificCategoryCard = function(event, index) {
             event.stopPropagation(); 
             
             const cardState = currentSuggestionsState[index];
-            if (cardState.isLocked) return; // Break routine execution if node choice is locked down
+            if (cardState.isLocked) return; 
 
             const cleanCategoryKey = cardState.time.split(' ')[0].toLowerCase(); 
             let newMealName = "No meals added";
@@ -680,7 +700,7 @@
 
         window.enableInlineCardEditing = function(index) {
             const cardState = currentSuggestionsState[index];
-            if (cardState.isLocked) return; // Disable edits if selection is finalized
+            if (cardState.isLocked) return; 
 
             const detailsBox = document.getElementById(`suggestion-details-${index}`);
             const textEl = document.getElementById(`suggestion-name-text-${index}`);
