@@ -810,7 +810,15 @@ async function fetchSurpriseMealFromInternet() {
       renderSpreadsheetModal();
       els.uploadStatus.textContent = 'Text import synchronized.';
     }
-
+// This function returns true if the meal is safe (Veg/Egg), false if it has meat/fish
+function isVegetarianSafe(mealName) {
+    const meatKeywords = ['chicken', 'fish', 'meat', 'beef', 'pork', 'mutton', 'prawn', 'bacon', 'ham'];
+    const lowerName = mealName.toLowerCase();
+    
+    // Check if any meat keyword is found in the meal name
+    const hasMeat = meatKeywords.some(keyword => lowerName.includes(keyword));
+    return !hasMeat; // Returns true only if NO meat is found
+}
     function setFoodMode(mode) { state.foodMode = mode; }
 
     function openModal(modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
@@ -821,13 +829,27 @@ async function fetchSurpriseMealFromInternet() {
     }
     function escapeAttr(str) { return escapeHtml(str); }
     // This tells the computer how to talk to the restaurant website
+// Replace your existing fetchSurpriseMealFromInternet with this:
 async function fetchSurpriseMealFromInternet() {
     try {
-        const res = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
-        const data = await res.json();
-        return data.meals ? data.meals[0].strMeal : "Surprise Dish";
-    } catch {
-        return "Surprise Dish";
+        let mealName = "Surprise Dish";
+        let isSafe = false;
+
+        // Keep fetching until we find a vegetarian meal
+        while (!isSafe) {
+            const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
+            const data = await response.json();
+            
+            if (data.meals && data.meals[0]) {
+                mealName = data.meals[0].strMeal;
+                isSafe = isVegetarianSafe(mealName); // Use the bouncer!
+            } else {
+                break; // Stop if API fails
+            }
+        }
+        return mealName;
+    } catch (error) {
+        return "Paneer Bhurji"; // Safe fallback
     }
 }
 
