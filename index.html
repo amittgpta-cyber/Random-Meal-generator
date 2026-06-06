@@ -506,11 +506,37 @@
             status.style.color = "#34a853";
         }
 
-        function saveDatabase() {
-            localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
-            if (!excelViewActive) renderSpreadsheetModal();
-        }
+function saveDatabase() {
 
+    db.breakfast =
+        [...new Set(
+            db.breakfast
+                .map(x => String(x).trim())
+                .filter(Boolean)
+        )];
+
+    db.lunch =
+        [...new Set(
+            db.lunch
+                .map(x => String(x).trim())
+                .filter(Boolean)
+        )];
+
+    db.dinner =
+        [...new Set(
+            db.dinner
+                .map(x => String(x).trim())
+                .filter(Boolean)
+        )];
+
+    localStorage.setItem(
+        EXCEL_DB_KEY,
+        JSON.stringify(db)
+    );
+
+    if (!excelViewActive)
+        renderSpreadsheetModal();
+}
         function getSmartAIMealSelection(categoryArr, timeOfDay) {
             if (!categoryArr.length) return "No meals added";
             const historicalExclusions = aiHistory.slice(-21).map(h => h.name.toLowerCase().trim());
@@ -634,7 +660,7 @@
     </button>
 
     <button class="action-bar-btn"
-        onclick="event.stopPropagation();openRecipeModal('${encodeURIComponent(s.name)}')">
+        onclick="event.stopPropagation();openRecipeModal(encodeURIComponent(String(s.name)))">
         📖 Recipe
     </button>
 
@@ -724,15 +750,7 @@
             const lChoice = getSmartAIMealSelection(db.lunch, "Lunch");
             const dChoice = getSmartAIMealSelection(db.dinner, "Dinner");
 
-            aiHistory.push({ time: "Breakfast", name: bChoice }, { time: "Lunch", name: lChoice }, { time: "Dinner", name: dChoice });
-            aiWeights[bChoice] = (aiWeights[bChoice] || 1) + 0.5;
-            aiWeights[lChoice] = (aiWeights[lChoice] || 1) + 0.5;
-            aiWeights[dChoice] = (aiWeights[dChoice] || 1) + 0.5;
-            if (aiHistory.length > 42) aiHistory.splice(0, 3);
-            localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(aiHistory));
-            localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
-
-            renderOutputDeck([
+                        renderOutputDeck([
                 { time: "Breakfast", name: bChoice, isSurprise: false, isLocked: false },
                 { time: "Lunch", name: lChoice, isSurprise: false, isLocked: false },
                 { time: "Dinner", name: dChoice, isSurprise: false, isLocked: false }
