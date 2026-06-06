@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +34,7 @@
             background-color: var(--md-sys-color-background); 
             color: var(--md-sys-color-text);
             margin: 0; 
-            padding: 20px 15px 120px 15px; 
+            padding: 20px 15px 210px 15px; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
@@ -85,7 +86,6 @@
             cursor: pointer; 
             font-weight: 500; 
             width: 100%; 
-            margin-bottom: 12px; 
             box-sizing: border-box; 
             display: flex;
             align-items: center;
@@ -95,13 +95,25 @@
         }
         .btn:active { transform: scale(0.98); }
 
-        .btn-fab { 
+        /* Integrated Bottom Fixed Action Console Zone */
+        .bottom-action-console {
             position: fixed;
-            bottom: calc(20px + env(safe-area-inset-bottom));
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 30px);
-            max-width: 410px;
+            width: 100%;
+            max-width: 440px;
+            background: linear-gradient(to top, rgba(18,18,18,1) 0%, rgba(18,18,18,0.95) 75%, rgba(18,18,18,0) 100%);
+            padding: 30px 15px calc(20px + env(safe-area-inset-bottom)) 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 14px; 
+            z-index: 99;
+            pointer-events: auto;
+        }
+
+        .btn-fab-main { 
             background-color: var(--md-sys-color-secondary); 
             color: var(--md-sys-color-on-secondary);
             font-size: 16px;
@@ -109,12 +121,17 @@
             letter-spacing: 0.2px;
             padding: 18px 24px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            z-index: 99;
-            margin-bottom: 0;
         }
-        .btn-fab:active { transform: translateX(-50%) scale(0.97); }
 
-        .btn-surprise { background-color: var(--md-sys-color-surprise); color: var(--md-sys-color-on-surprise); }
+        .btn-fab-surprise { 
+            background-color: var(--md-sys-color-surprise); 
+            color: var(--md-sys-color-on-surprise);
+            font-size: 15px;
+            font-weight: 600;
+            padding: 16px 24px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
         .btn-secondary { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-text); }
         .btn-danger { background-color: #f44336; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 8px; display: inline-block; margin: 0; }
         
@@ -134,8 +151,8 @@
         .meal-details { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
         .meal-time { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.5px; }
         .meal-name { font-size: 18px; font-weight: 400; color: var(--md-sys-color-text); }
-        
-        /* Modal Sheets Layout */
+        .ai-badge { align-self: flex-start; font-size: 10px; font-weight: bold; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .modal-content { background: var(--md-sys-color-surface); width: 92%; max-width: 420px; height: 85vh; border-radius: 32px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -145,14 +162,12 @@
         .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
         .data-cell { font-size: 14px; color: var(--md-sys-color-text-variant); }
         
-        /* Unified Add Form Component */
         .unified-add-form { background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.04); }
         .unified-add-form h4 { margin: 0 0 12px 0; color: var(--md-sys-color-primary); font-weight: 500; font-size: 14px; }
         .unified-input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
         .add-input { padding: 12px 16px; border: 1px solid rgba(255,255,255,0.1); background: var(--md-sys-color-background); color: var(--md-sys-color-text); border-radius: 12px; font-size: 14px; box-sizing: border-box; width: 100%; }
         .add-input:focus { outline: none; border-color: var(--md-sys-color-primary); }
 
-        /* Excel View Mode Textarea Layout */
         #excelEditorArea { width: 100%; height: 350px; background: var(--md-sys-color-background); color: #a8c7fa; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.5; resize: none; box-sizing: border-box; white-space: pre; overflow: auto; }
         #excelEditorArea:focus { outline: none; border-color: var(--md-sys-color-primary); }
     </style>
@@ -167,8 +182,10 @@
 
         <main id="suggestions" class="suggestion-list"></main>
 
-        <button id="surpriseBtn" class="btn btn-surprise" style="margin-top: 16px;">✨ Surprise ME!</button>
-        <button id="generateBtn" class="btn btn-fab">🍽️ what can I EAT today!</button>
+        <div class="bottom-action-console">
+            <button id="surpriseBtn" class="btn btn-fab-surprise">✨ Surprise ME!</button>
+            <button id="generateBtn" class="btn btn-fab-main">🍽️ what can I EAT today!</button>
+        </div>
     </div>
 
     <div id="dataModal" class="modal">
@@ -220,32 +237,13 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
         const EXCEL_DB_KEY = 'spreadsheetMealDatabase';
+        const AI_HISTORY_KEY = 'mealSyncAIHistory';
+        const AI_WEIGHTS_KEY = 'mealSyncAIWeights';
         
         const freshSeedData = {
-            breakfast: [
-                "Aalu Paratha", "Paneer Paratha", "Methi Paratha / Boondi Raita", 
-                "Guacamole toast (Avocado)", "Idli chutney / Sambhar", "Dosa Sambhar / chutney", 
-                "Veg Sandwich", "Paneer Sandwich", "Poha", "Vermicelli", "Sabudana khichdi", 
-                "Omelette", "Bun omelette", "Bun sandwich / Burger", "Moong daal cheela & chatni"
-            ],
-            lunch: [
-                "Methi Aalu / Moong Daal Roti", "Aalu / Kadhi Chawal", "Aalu Shimla mirch Roti", 
-                "Lauki Kofta Chawal", "Tindli / Moong Daal", "Kaddu Roti", "Soya Aalu Sabji Chawal", 
-                "Matar Aalu sabji Chawal / Roti", "Paneer Sabji Roti", "Parval Subji / Moong daal Roti", 
-                "Arhar daal / Toor Daal / Aalu Sabji / Roti / Chawal", "Lauki sabji Roti", 
-                "Rajma Chawal", "Chole Chawal", "Bhel", "Brown Daal / Roti / Chawal", 
-                "Udad daal Roti / Chawal", "Chana Daal / Lauki Chawal", "Mix Daal Roti", 
-                "Paneer Bhurji Roti", "Nutri Kulcha", "Kala chana chat / Roti", "Lobiya Chawal"
-            ],
-            dinner: [
-                "Egg Biryani", "Paneer Bhurji / chutney", "Noodles / Pasta", 
-                "Methi Aalu / Moong Daal Roti", "Aalu / Kadhi Chawal", "Aalu Shimla mirch Roti", 
-                "Lauki Kofta Chawal", "Tindli / Moong Daal", "Kaddu Roti", "Soya Aalu Sabji Chawal", 
-                "Matar Aalu sabji Chawal / Roti", "Paneer Sabji Roti", "Parval Subji / Moong daal Roti", 
-                "Arhar daal / Toor Daal / Aalu Sabji / Roti / Chawal", "Lauki sabji Roti", 
-                "Rajma Chawal", "Chole Chawal", "Egg curry rice", "Jeera Aalu Roti", 
-                "Khichdi dahi / Achar", "Daliya Veg", "Sattu Paratha"
-            ]
+            breakfast: ["Aalu Paratha", "Paneer Paratha", "Methi Paratha / Boondi Raita", "Guacamole toast (Avocado)", "Idli chutney / Sambhar", "Dosa Sambhar / chutney", "Veg Sandwich", "Paneer Sandwich", "Poha", "Vermicelli", "Sabudana khichdi", "Omelette", "Bun omelette", "Bun sandwich / Burger", "Moong daal cheela & chatni"],
+            lunch: ["Methi Aalu / Moong Daal Roti", "Aalu / Kadhi Chawal", "Aalu Shimla mirch Roti", "Lauki Kofta Chawal", "Tindli / Moong Daal", "Kaddu Roti", "Soya Aalu Sabji Chawal", "Matar Aalu sabji Chawal / Roti", "Paneer Sabji Roti", "Parval Subji / Moong daal Roti", "Arhar daal / Toor Daal / Aalu Sabji / Roti / Chawal", "Lauki sabji Roti", "Rajma Chawal", "Chole Chawal", "Bhel", "Brown Daal / Roti / Chawal", "Udad daal Roti / Chawal", "Chana Daal / Lauki Chawal", "Mix Daal Roti", "Paneer Bhurji Roti", "Nutri Kulcha", "Kala chana chat / Roti", "Lobiya Chawal"],
+            dinner: ["Egg Biryani", "Paneer Bhurji / chutney", "Noodles / Pasta", "Methi Aalu / Moong Daal Roti", "Aalu / Kadhi Chawal", "Aalu Shimla mirch Roti", "Lauki Kofta Chawal", "Tindli / Moong Daal", "Kaddu Roti", "Soya Aalu Sabji Chawal", "Matar Aalu sabji Chawal / Roti", "Paneer Sabji Roti", "Parval Subji / Moong daal Roti", "Arhar daal / Toor Daal / Aalu Sabji / Roti / Chawal", "Lauki sabji Roti", "Rajma Chawal", "Chole Chawal", "Egg curry rice", "Jeera Aalu Roti", "Khichdi dahi / Achar", "Daliya Veg", "Sattu Paratha"]
         };
 
         const surpriseMasterPool = {
@@ -257,6 +255,9 @@
         let db = freshSeedData;
         if (localStorage.getItem(EXCEL_DB_KEY)) db = JSON.parse(localStorage.getItem(EXCEL_DB_KEY));
         else localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
+
+        let aiHistory = JSON.parse(localStorage.getItem(AI_HISTORY_KEY)) || [];
+        let aiWeights = JSON.parse(localStorage.getItem(AI_WEIGHTS_KEY)) || {};
 
         let excelViewActive = false;
         const status = document.getElementById('uploadStatus');
@@ -368,7 +369,49 @@
             if (!excelViewActive) renderSpreadsheetModal();
         }
 
-        const getRandomItem = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No meals added";
+        function getSmartAIMealSelection(categoryArr, timeOfDay) {
+            if (!categoryArr.length) return "No meals added";
+            
+            const historicalExclusions = aiHistory.slice(-21).map(h => h.name.toLowerCase().trim());
+            const availableOptions = categoryArr.filter(meal => !historicalExclusions.includes(meal.toLowerCase().trim()));
+            const calculationPool = availableOptions.length ? availableOptions : categoryArr;
+
+            let scores = calculationPool.map(meal => {
+                let baseWeight = aiWeights[meal] || 1;
+                return { name: meal, weight: baseWeight };
+            });
+
+            let totalWeight = scores.reduce((sum, s) => sum + s.weight, 0);
+            let randomTarget = Math.random() * totalWeight;
+            
+            let runningSum = 0;
+            for (let score of scores) {
+                runningSum += score.weight;
+                if (randomTarget <= runningSum) {
+                    return score.name;
+                }
+            }
+            return calculationPool[Math.floor(Math.random() * calculationPool.length)];
+        }
+
+        function logSelectedMealsToAI(breakfast, lunch, dinner) {
+            const meals = [
+                { time: "Breakfast", name: breakfast },
+                { time: "Lunch", name: lunch },
+                { time: "Dinner", name: dinner }
+            ];
+
+            meals.forEach(m => {
+                if (m.name === "No meals added") return;
+                aiHistory.push(m);
+                aiWeights[m.name] = (aiWeights[m.name] || 1) + 0.5;
+            });
+
+            if (aiHistory.length > 42) aiHistory.shift();
+
+            localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(aiHistory));
+            localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
+        }
 
         function renderOutputDeck(schema) {
             const out = document.getElementById('suggestions');
@@ -379,6 +422,7 @@
                         <div class="meal-details">
                             <span class="meal-time">${s.time}</span>
                             <span class="meal-name">${s.name}</span>
+                            <span class="ai-badge">AI Optimized</span>
                         </div>
                     </div>
                 `);
@@ -386,24 +430,33 @@
         }
 
         document.getElementById('generateBtn').addEventListener('click', function() {
+            const bChoice = getSmartAIMealSelection(db.breakfast, "Breakfast");
+            const lChoice = getSmartAIMealSelection(db.lunch, "Lunch");
+            const dChoice = getSmartAIMealSelection(db.dinner, "Dinner");
+            
+            logSelectedMealsToAI(bChoice, lChoice, dChoice);
+
             renderOutputDeck([
-                { time: "Breakfast", name: getRandomItem(db.breakfast) },
-                { time: "Lunch", name: getRandomItem(db.lunch) },
-                { time: "Dinner", name: getRandomItem(db.dinner) }
+                { time: "Breakfast", name: bChoice },
+                { time: "Lunch", name: lChoice },
+                { time: "Dinner", name: dChoice }
             ]);
         });
 
         document.getElementById('surpriseBtn').addEventListener('click', function() {
             const filterSurprise = (pool, userDb) => {
                 const normalizedDb = userDb.map(i => i.toLowerCase().trim());
-                const filtered = pool.filter(i => !normalizedDb.includes(i.toLowerCase().trim()));
-                return filtered.length ? filtered : pool;
+                return pool.filter(i => !normalizedDb.includes(i.toLowerCase().trim()));
             };
 
+            const bSurprise = filterSurprise(surpriseMasterPool.breakfast, db.breakfast);
+            const lSurprise = filterSurprise(surpriseMasterPool.lunch, db.lunch);
+            const dSurprise = filterSurprise(surpriseMasterPool.dinner, db.dinner);
+
             renderOutputDeck([
-                { time: "Breakfast (Surprise)", name: getRandomItem(filterSurprise(surpriseMasterPool.breakfast, db.breakfast)) },
-                { time: "Lunch (Surprise)", name: getRandomItem(filterSurprise(surpriseMasterPool.lunch, db.lunch)) },
-                { time: "Dinner (Surprise)", name: getRandomItem(filterSurprise(surpriseMasterPool.dinner, db.dinner)) }
+                { time: "Breakfast (Surprise)", name: bSurprise[Math.floor(Math.random() * bSurprise.length)] || "Veg Upma" },
+                { time: "Lunch (Surprise)", name: lSurprise[Math.floor(Math.random() * lSurprise.length)] || "Veg Biryani" },
+                { time: "Dinner (Surprise)", name: dSurprise[Math.floor(Math.random() * dSurprise.length)] || "Pav Bhaji" }
             ]);
         });
 
@@ -420,7 +473,16 @@
         });
         
         document.getElementById('closeDataBtn').addEventListener('click', () => dataModal.style.display = "none");
-        document.getElementById('clearDbBtn').addEventListener('click', () => { if(confirm("Clear current database items?")) { db={breakfast:[],lunch:[],dinner:[]}; saveDatabase(); }});
+        document.getElementById('clearDbBtn').addEventListener('click', () => { 
+            if(confirm("Clear current database items and learned AI memory?")) { 
+                db={breakfast:[],lunch:[],dinner:[]}; 
+                aiHistory = [];
+                aiWeights = {};
+                localStorage.removeItem(AI_HISTORY_KEY);
+                localStorage.removeItem(AI_WEIGHTS_KEY);
+                saveDatabase(); 
+            }
+        });
 
         excelToggleBtn.addEventListener('click', () => {
             excelViewActive = !excelViewActive;
@@ -530,3 +592,5 @@
     </script>
 </body>
 </html>
+
+```
