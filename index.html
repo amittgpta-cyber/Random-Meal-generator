@@ -5,31 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Meal Sync Pro</title>
     
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href='data:application/json,{"name":"Meal Sync Pro","short_name":"MealSync","start_url":"./index.html","display":"fullscreen","background_color":"#121212","theme_color":"#121212","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2276/2276931.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
+    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
-        :root { --md-sys-color-background: #121212; --md-sys-color-primary: #a8c7fa; --md-sys-color-success: #34a853; --md-sys-color-text: #e3e2e6; }
-        body { font-family: 'Roboto', sans-serif; background-color: var(--md-sys-color-background); color: var(--md-sys-color-text); margin: 0; padding: 20px; min-height: 100vh; }
-        .app-container { max-width: 440px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; }
-        .btn { border: none; padding: 18px; border-radius: 100px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .meal-card { background: #1e1e1e; border-radius: 24px; padding: 20px; margin-bottom: 20px; }
-        .meal-name { font-size: 20px; font-weight: 500; margin: 10px 0; }
-        .card-actions { display: flex; gap: 10px; }
-        .action-btn { flex: 1; padding: 12px; border-radius: 50px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+        :root {
+            --md-sys-color-background: #121212;
+            --md-sys-color-surface: #1e1e1e;
+            --md-sys-color-surface-variant: #2d2d2d;
+            --md-sys-color-primary: #a8c7fa;
+            --md-sys-color-secondary: #c2e7ff;
+            --md-sys-color-surprise: #ffb74d;
+            --md-sys-color-fridge: #85e3b3;
+            --md-sys-color-success: #34a853;
+            --md-sys-color-text: #e3e2e6;
+        }
+
+        body { font-family: 'Roboto', sans-serif; background-color: var(--md-sys-color-background); color: var(--md-sys-color-text); margin: 0; padding: 20px; min-height: 100vh; box-sizing: border-box; }
+        .app-container { max-width: 440px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; min-height: calc(100vh - 40px); }
+        
+        h1 { font-size: 2.2rem; text-align: center; margin-top: 0; margin-bottom: 20px; }
+        
+        .suggestion-list { flex-grow: 1; display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px; }
+        
+        .console { display: flex; flex-direction: column; gap: 12px; margin-top: auto; padding-top: 10px; transition: all 0.2s ease; width: 100%; }
+        .console.shrink-mode { gap: 8px; padding-top: 0; }
+        
+        .btn { border: none; padding: 20px; border-radius: 100px; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s ease; }
+        .console.shrink-mode .btn { padding: 12px 16px; font-size: 14px; }
+
+        .meal-card { background: var(--md-sys-color-surface-variant); border-radius: 28px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .meal-card.locked-state { border: 2px solid var(--md-sys-color-success); background-color: rgba(52, 168, 83, 0.05); }
+        .meal-name { font-size: 22px; font-weight: 500; margin: 10px 0 20px 0; line-height: 1.3; }
+        
+        .card-explicit-actions-bar { display: flex; gap: 10px; }
+        .action-bar-btn { flex: 1; padding: 14px 10px; border-radius: 50px; border: none; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; }
+        
+        .btn-action-lock { background: var(--md-sys-color-success); color: white; }
+        .btn-action-change { background: #333; color: white; }
+        .btn-action-recipe { background: var(--md-sys-color-primary); color: #000; }
+        
+        .meal-card.locked-state .btn-action-change { opacity: 0.3; pointer-events: none; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: var(--md-sys-color-surface); width: 100%; max-width: 400px; padding: 25px; border-radius: 28px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; font-size: 1.5rem; }
+        .close-btn { background: none; border: none; color: var(--md-sys-color-text-variant); font-size: 28px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <h1>Meal Sync Pro</h1>
-        <main id="suggestions"></main>
-        <div id="console">
-            <button id="fridgeBtn" class="btn" style="background:#85e3b3; color:#000">🥦 Fridge Items</button>
-            <button id="surpriseBtn" class="btn" style="background:#ffb74d; color:#000">✨ Surprise ME!</button>
-            <button id="generateBtn" class="btn" style="background:#c2e7ff; color:#000">🍽️ What to EAT Today?</button>
+        <main id="suggestions" class="suggestion-list">
+            <div style="text-align: center; color: #c7c6ca; padding: 40px 20px; font-size: 16px;">
+                Tap "What to EAT Today?" to generate your meals.
+            </div>
+        </main>
+        
+        <div id="console" class="console">
+            <button id="fridgeBtn" class="btn" style="background:var(--md-sys-color-fridge); color:#000">🥦 Fridge Items</button>
+            <button id="surpriseBtn" class="btn" style="background:var(--md-sys-color-surprise); color:#000">✨ Surprise ME!</button>
+            <button id="generateBtn" class="btn" style="background:var(--md-sys-color-secondary); color:#000">🍽️ What to EAT Today?</button>
+        </div>
+    </div>
+
+    <div id="recipeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="recipeTitle">Recipe Options</h3>
+                <button class="close-btn" id="closeRecipeBtn">&times;</button>
+            </div>
+            <p style="margin-bottom: 20px; color: #c7c6ca;">Search for ingredients and cooking instructions online.</p>
+            <div style="display:flex; gap:10px; flex-direction: column;">
+                <button id="googleRecipeBtn" class="btn" style="background:var(--md-sys-color-primary); color:#000; padding: 14px;">🔍 Google Search</button>
+                <button id="youtubeRecipeBtn" class="btn" style="background:#f44336; color:#fff; padding: 14px;">▶ YouTube Search</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="fridgeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>What's in the Fridge?</h3>
+                <button class="close-btn" id="closeFridgeBtn">&times;</button>
+            </div>
+            <input type="text" id="fridgeInput" placeholder="e.g., Paneer, Dal, Tomato" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #555; background: #121212; color: #fff; margin-bottom: 20px; box-sizing: border-box;">
+            <button id="submitFridgeBtn" class="btn" style="background:var(--md-sys-color-fridge); color:#000; padding: 14px;">Match Ingredients</button>
         </div>
     </div>
 
     <script>
-        // Full database integrated from your Excel file
         const db = { 
             breakfast: ["Poha", "Aalu Paratha", "Paneer Paratha", "Idli", "Dosa", "Veg Sandwich", "Upma", "Dalia"], 
             lunch: ["Dal Rice", "Rajma Chawal", "Paneer Sabji Roti", "Lauki Kofta", "Kadhi Chawal", "Soya Aalu Sabji", "Matar Aalu", "Parval Subji", "Arhar Dal", "Lauki Sabji", "Udad Dal", "Chana Dal"], 
@@ -37,44 +111,71 @@
         };
         
         let indices = { breakfast: 0, lunch: 0, dinner: 0 };
+        let activeRecipeMeal = "";
 
         document.body.addEventListener('click', (e) => {
-            const target = e.target;
-            
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            // Main Console Buttons
             if (target.id === 'generateBtn') renderMeals(true);
-            if (target.id === 'fridgeBtn') alert("Fridge Matching: Checking your pantry ingredients...");
-            if (target.id === 'surpriseBtn') alert("Surprise Mode: Picking a random meal from your database!");
-            
-            if (target.classList.contains('btn-change')) {
+            if (target.id === 'fridgeBtn') document.getElementById('fridgeModal').style.display = 'flex';
+            if (target.id === 'surpriseBtn') {
+                indices.breakfast = Math.floor(Math.random() * db.breakfast.length);
+                indices.lunch = Math.floor(Math.random() * db.lunch.length);
+                indices.dinner = Math.floor(Math.random() * db.dinner.length);
+                renderMeals(false);
+            }
+            if (target.id === 'submitFridgeBtn') {
+                document.getElementById('fridgeModal').style.display = 'none';
+                renderMeals(true);
+            }
+
+            // Card Action Buttons
+            if (target.classList.contains('btn-action-change')) {
                 const cat = target.dataset.cat;
                 const idx = target.dataset.index;
                 indices[cat] = (indices[cat] + 1) % db[cat].length;
                 document.querySelectorAll('.meal-name')[idx].innerText = db[cat][indices[cat]];
+                target.closest('.meal-card').querySelector('.btn-action-recipe').dataset.meal = db[cat][indices[cat]];
             }
             
-            if (target.classList.contains('btn-lock')) {
-                target.innerText = "Confirmed!"; target.style.background = "#555";
+            if (target.classList.contains('btn-action-lock')) {
+                target.innerHTML = "✅ Confirmed"; 
+                target.style.background = "#555";
+                target.closest('.meal-card').classList.add('locked-state');
             }
             
-            if (target.classList.contains('btn-recipe')) {
-                window.open(`https://google.com/search?q=${target.dataset.meal}+recipe`, "_blank");
+            if (target.classList.contains('btn-action-recipe')) {
+                activeRecipeMeal = target.dataset.meal;
+                document.getElementById("recipeTitle").innerText = activeRecipeMeal;
+                document.getElementById("recipeModal").style.display = "flex";
             }
+
+            // Modal Closes & Actions
+            if (target.id === 'closeRecipeBtn') document.getElementById('recipeModal').style.display = 'none';
+            if (target.id === 'closeFridgeBtn') document.getElementById('fridgeModal').style.display = 'none';
+            if (target.id === 'googleRecipeBtn') window.open(`https://google.com/search?q=${encodeURIComponent(activeRecipeMeal + " recipe")}`, "_blank");
+            if (target.id === 'youtubeRecipeBtn') window.open(`https://youtube.com/results?search_query=${encodeURIComponent(activeRecipeMeal + " recipe")}`, "_blank");
         });
 
         function renderMeals(reset) {
+            document.getElementById('console').classList.add('shrink-mode');
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
+            
             ['breakfast', 'lunch', 'dinner'].forEach((cat, index) => {
-                if(reset) indices[cat] = 0;
+                if(reset) indices[cat] = Math.floor(Math.random() * db[cat].length); // Start with random or 0
                 const meal = db[cat][indices[cat]];
+                
                 out.insertAdjacentHTML('beforeend', `
                     <div class="meal-card">
-                        <small style="color:var(--md-sys-color-primary)">${cat.toUpperCase()}</small>
+                        <div style="font-size: 13px; font-weight: 700; color:var(--md-sys-color-primary); text-transform: uppercase; letter-spacing: 0.5px;">${cat}</div>
                         <div class="meal-name">${meal}</div>
-                        <div class="card-actions">
-                            <button class="action-btn btn-lock" style="background:var(--md-sys-color-success);color:white">✅ Eat</button>
-                            <button class="action-btn btn-change" style="background:#333;color:white" data-cat="${cat}" data-index="${index}">🔄 Change</button>
-                            <button class="action-btn btn-recipe" style="background:var(--md-sys-color-primary)" data-meal="${meal}">📖 Recipe</button>
+                        <div class="card-explicit-actions-bar">
+                            <button class="action-bar-btn btn-action-lock">✅ I'll EAT IT</button>
+                            <button class="action-bar-btn btn-action-change" data-cat="${cat}" data-index="${index}">🔄 Change</button>
+                            <button class="action-bar-btn btn-action-recipe" data-meal="${meal}">📖 Recipe</button>
                         </div>
                     </div>
                 `);
