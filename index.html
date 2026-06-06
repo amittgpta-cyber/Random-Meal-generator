@@ -17,15 +17,18 @@
         .app-container { max-width: 480px; width: 100%; }
         h1 { color: #1a73e8; text-align: center; margin-bottom: 20px; font-size: 1.8rem; }
         .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; margin-bottom: 15px; }
-        .upload-card { background: #e3f2fd; border: 2px dashed #90caf9; }
-        .custom-file-input { display: none; }
-        .custom-file-label { background-color: #1976d2; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: 500; margin-bottom: 10px; }
-        .btn { border: none; padding: 14px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        .btn { border: none; padding: 14px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; box-sizing: border-box; display: block; text-align: center; text-decoration: none; }
         .btn-primary { background-color: #34a853; color: white; }
         .btn-surprise { background-color: #ff9800; color: white; }
         .btn-secondary { background-color: #f1f3f4; color: #3c4043; border: 1px solid #dadce0; }
-        .btn-danger { background-color: #d93025; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 4px; }
-        #uploadStatus { font-weight: bold; color: #1565c0; font-size: 13px; white-space: pre-line; margin-top: 5px; }
+        .btn-danger { background-color: #d93025; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 4px; display: inline-block; margin: 0; }
+        
+        /* Inline Import Buttons Grid Inside Modal */
+        .import-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .import-label { background-color: #1a73e8; color: white; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .custom-file-input { display: none; }
+        
+        #uploadStatus { font-weight: bold; color: #1565c0; font-size: 13px; white-space: pre-line; margin-bottom: 15px; text-align: center; }
         .suggestion-list { margin-top: 15px; text-align: left; border-top: 1px solid #eee; padding-top: 15px; }
         .meal-suggestion { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
         .meal-time { font-weight: bold; color: #4285F4; }
@@ -33,7 +36,7 @@
         
         /* Modal Data View Styles */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; max-width: 450px; height: 80vh; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-content { background: white; width: 90%; max-width: 450px; height: 85vh; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .modal-body { flex: 1; overflow-y: auto; padding-right: 5px; }
         .table-section { margin-bottom: 20px; }
@@ -48,14 +51,6 @@
 
     <div class="app-container">
         <h1>Meal Sync Pro</h1>
-
-        <div class="card upload-card">
-            <h3>Import New Source</h3>
-            <p style="margin:0 0 12px 0; font-size:13px; color:#5f6368;">Accepts Screenshots, Camera Photos, PDF, Word, and Excel Sheets.</p>
-            <input type="file" id="fileInput" class="custom-file-input" accept="image/*,.pdf,.docx,.xlsx,.xls" capture="environment">
-            <label for="fileInput" class="custom-file-label">Choose File / Open Camera</label>
-            <div id="uploadStatus"></div>
-        </div>
 
         <div class="card">
             <button id="generateBtn" class="btn btn-primary">what can I EAT today!</button>
@@ -73,9 +68,19 @@
                 <button id="closeDataBtn" style="background:none; border:none; font-size:24px; cursor:pointer; color:#5f6368;">&times;</button>
             </div>
             
+            <div class="import-grid">
+                <input type="file" id="fileUploadInput" class="custom-file-input" accept="image/*,.pdf,.docx,.xlsx,.xls">
+                <label for="fileUploadInput" class="import-label">📁 Upload File<br><span style="font-size:9px;font-weight:normal;opacity:0.8;">Image/PDF/Word/Excel</span></label>
+
+                <input type="file" id="cameraCaptureInput" class="custom-file-input" accept="image/*" capture="environment">
+                <label for="cameraCaptureInput" class="import-label" style="background-color: #34a853;">📷 Open Camera<br><span style="font-size:9px;font-weight:normal;opacity:0.8;">Take Realtime Photo</span></label>
+            </div>
+            
+            <div id="uploadStatus"></div>
+            
             <div style="margin-bottom: 12px; display:flex; gap:8px;">
-                <button id="exportExcelBtn" class="btn btn-secondary" style="margin:0; padding:8px; font-size:13px;">📥 Export .XLSX</button>
-                <button id="clearDbBtn" class="btn btn-secondary" style="margin:0; padding:8px; font-size:13px; color:#d93025;">🗑️ Reset Data</button>
+                <button id="exportExcelBtn" class="btn btn-secondary" style="margin:0; padding:8px; font-size:13px; flex:1;">📥 Export .XLSX</button>
+                <button id="clearDbBtn" class="btn btn-secondary" style="margin:0; padding:8px; font-size:13px; color:#d93025; flex:1;">🗑️ Reset Data</button>
             </div>
 
             <div class="modal-body" id="modalTableBody">
@@ -88,13 +93,34 @@
         
         const EXCEL_DB_KEY = 'spreadsheetMealDatabase';
         
+        // Complete built-in structured layout matching your Categorized Meal Plan dataset exactly
         const freshSeedData = {
-            breakfast: ["Poha", "Idli Sambhar", "Oatmeal"],
-            lunch: ["Roti with Mix Veg", "Dal Rice and Salad"],
-            dinner: ["Khichdi", "Paneer Kathi Roll"]
+            breakfast: [
+                "Aalu Paratha", "Paneer Paratha", "Methi Paratha / Boondi Raita", 
+                "Guacamole toast (Avocado)", "Idli chutney / Sambhar", "Dosa Sambhar / chutney", 
+                "Veg Sandwich", "Paneer Sandwich", "Poha", "Vermicelli", "Sabudana khichdi", 
+                "Omelette", "Bun omelette", "Bun sandwich / Burger", "Moong daal cheela & chatni"
+            ],
+            lunch: [
+                "Methi Aalu / Moong Daal Roti", "Aalu / Kadhi Chawal", "Aalu Shimla mirch Roti", 
+                "Lauki Kofta Chawal", "Tindli / Moong Daal", "Kaddu Roti", "Soya Aalu Sabji Chawal", 
+                "Matar Aalu sabji Chawal / Roti", "Paneer Sabji Roti", "Parval Subji / Moong daal Roti", 
+                "Arhar daal / Toor Daal / Aalu Sabji / Roti / Chawal", "Lauki sabji Roti", 
+                "Rajma Chawal", "Chole Chawal", "Bhel", "Brown Daal / Roti / Chawal", 
+                "Udad daal Roti / Chawal", "Chana Daal / Lauki Chawal", "Mix Daal Roti", 
+                "Paneer Bhurji Roti", "Nutri Kulcha", "Kala chana chat / Roti", "Lobiya Chawal"
+            ],
+            dinner: [
+                "Egg Biryani", "Paneer Bhurji / chutney", "Noodles / Pasta", 
+                "Methi Aalu / Moong Daal Roti", "Aalu / Kadhi Chawal", "Aalu Shimla mirch Roti", 
+                "Lauki Kofta Chawal", "Tindli / Moong Daal", "Kaddu Roti", "Soya Aalu Sabji Chawal", 
+                "Matar Aalu sabji Chawal / Roti", "Paneer Sabji Roti", "Parval Subji / Moong daal Roti", 
+                "Arhar daal / Toor Daal / Aalu Sabji / Roti / Chawal", "Lauki sabji Roti", 
+                "Rajma Chawal", "Chole Chawal", "Egg curry rice", "Jeera Aalu Roti", 
+                "Khichdi dahi / Achar", "Daliya Veg", "Sattu Paratha"
+            ]
         };
 
-        // Complete Vegetarian (with Egg, strictly no meat) Surprise Meal Master Pool
         const surpriseMasterPool = {
             breakfast: [
                 "Veg Upma", "Masala Scrambled Eggs with Toast", "Appam with Vegetable Stew", 
@@ -113,16 +139,22 @@
             ]
         };
 
-        let db = JSON.parse(localStorage.getItem(EXCEL_DB_KEY)) || freshSeedData;
-        if (!localStorage.getItem(EXCEL_DB_KEY)) localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
+        let db = freshSeedData;
+        
+        // Sync or initialize localized runtime states
+        if (localStorage.getItem(EXCEL_DB_KEY)) {
+            db = JSON.parse(localStorage.getItem(EXCEL_DB_KEY));
+        } else {
+            localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
+        }
 
-        // Global DOM bindings
-        const fileInput = document.getElementById('fileInput');
         const status = document.getElementById('uploadStatus');
         const dataModal = document.getElementById('dataModal');
 
-        // File Router Engine
-        fileInput.addEventListener('change', function(e) {
+        document.getElementById('fileUploadInput').addEventListener('change', handleFileRouting);
+        document.getElementById('cameraCaptureInput').addEventListener('change', handleFileRouting);
+
+        function handleFileRouting(e) {
             const file = e.target.files[0];
             if (!file) return;
             const name = file.name.toLowerCase();
@@ -141,9 +173,8 @@
                 status.innerText = "Processing structured Excel Binary Matrix...";
                 processExcel(file);
             }
-        });
+        }
 
-        // Native Document Extractors
         function processPDF(file) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -195,7 +226,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Context Parser Logic
         function parseTextPool(text) {
             const chunks = text.replace(/[\r\\•]/g, '\n').split(/[\n,\;\•]|\s{3,}/).map(c => c.trim()).filter(c => c.length > 2);
             chunks.forEach(chunk => {
@@ -222,14 +252,11 @@
             renderSpreadsheetModal();
         }
 
-        // Helper function to pick a random item from an array
         const getRandomItem = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No meals added";
 
-        // Execution Core: Database Selection Engine
         document.getElementById('generateBtn').addEventListener('click', function() {
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
-            
             const schema = [
                 { time: "Breakfast", name: getRandomItem(db.breakfast) },
                 { time: "Lunch", name: getRandomItem(db.lunch) },
@@ -238,16 +265,14 @@
             renderResults(schema, out);
         });
 
-        // Execution Core: Surprise Me Selection Engine (Strictly outside DB)
         document.getElementById('surpriseBtn').addEventListener('click', function() {
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
 
-            // Filter logic to ensure chosen items are strictly not present inside current internal database
             const filterSurprise = (pool, userDb) => {
                 const normalizedDb = userDb.map(i => i.toLowerCase().trim());
                 const filtered = pool.filter(i => !normalizedDb.includes(i.toLowerCase().trim()));
-                return filtered.length ? filtered : pool; // Fallback to entire pool if everything matches
+                return filtered.length ? filtered : pool;
             };
 
             const uniqueBreakfasts = filterSurprise(surpriseMasterPool.breakfast, db.breakfast);
@@ -268,8 +293,7 @@
             });
         }
 
-        // UI Spreadsheet Modal Operations
-        document.getElementById('openDataBtn').addEventListener('click', () => { dataModal.style.display = "flex"; renderSpreadsheetModal(); });
+        document.getElementById('openDataBtn').addEventListener('click', () => { status.innerText = ""; dataModal.style.display = "flex"; renderSpreadsheetModal(); });
         document.getElementById('closeDataBtn').addEventListener('click', () => dataModal.style.display = "none");
         document.getElementById('clearDbBtn').addEventListener('click', () => { if(confirm("Clear current database items?")) { db={breakfast:[],lunch:[],dinner:[]}; saveDatabase(); }});
 
@@ -305,22 +329,18 @@
             if(input.value.trim()) { db[cat].push(input.value.trim()); input.value = ""; saveDatabase(); }
         };
 
-        // Export Array Database structures directly out into native .xlsx binary standard
         document.getElementById('exportExcelBtn').addEventListener('click', function() {
             const maxLength = Math.max(db.breakfast.length, db.lunch.length, db.dinner.length);
             const sheetRows = [["Breakfast", "Lunch", "Dinner"]];
-            
             for(let i=0; i<maxLength; i++) {
                 sheetRows.push([db.breakfast[i] || "", db.lunch[i] || "", db.dinner[i] || ""]);
             }
-
             const worksheet = XLSX.utils.aoa_to_sheet(sheetRows);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Meals");
             XLSX.writeFile(workbook, "Meal_Sync_Database.xlsx");
         });
 
-        // Self-Contained Service Worker Thread
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
