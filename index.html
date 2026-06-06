@@ -22,6 +22,7 @@
         .custom-file-label { background-color: #1976d2; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: 500; margin-bottom: 10px; }
         .btn { border: none; padding: 14px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
         .btn-primary { background-color: #34a853; color: white; }
+        .btn-diet { background-color: #0f9d58; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-secondary { background-color: #f1f3f4; color: #3c4043; border: 1px solid #dadce0; }
         .btn-danger { background-color: #d93025; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 4px; }
         #uploadStatus { font-weight: bold; color: #1565c0; font-size: 13px; white-space: pre-line; margin-top: 5px; }
@@ -57,7 +58,8 @@
         </div>
 
         <div class="card">
-            <button id="generateBtn" class="btn btn-primary">Generate Today's Meals</button>
+            <button id="generateBtn" class="btn btn-primary">Generate Any Meal</button>
+            <button id="generateVegEggBtn" class="btn btn-diet">🥚 Veg / Egg Plan</button>
             <button id="openDataBtn" class="btn btn-secondary">📊 Meal Data</button>
             
             <div id="suggestions" class="suggestion-list"></div>
@@ -84,13 +86,13 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
-        // Clearing prior structured database keys to cleanly initialize new layout parameters
         const EXCEL_DB_KEY = 'spreadsheetMealDatabase';
         
+        // Setup initial vegetarian/egg defaults
         const freshSeedData = {
-            breakfast: ["Poha", "Idli Sambhar", "Oatmeal"],
-            lunch: ["Roti with Mix Veg", "Dal Rice and Salad"],
-            dinner: ["Khichdi", "Paneer Kathi Roll"]
+            breakfast: ["Poha", "Idli Sambhar", "Oatmeal", "Boiled Eggs"],
+            lunch: ["Roti with Mix Veg", "Dal Rice and Salad", "Egg Curry with Rice"],
+            dinner: ["Khichdi", "Paneer Kathi Roll", "Veg Soup"]
         };
 
         let db = JSON.parse(localStorage.getItem(EXCEL_DB_KEY)) || freshSeedData;
@@ -156,7 +158,6 @@
                 const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                 
                 if(json.length > 1) {
-                    // Expects Column Headers: Breakfast, Lunch, Dinner
                     const headers = json[0].map(h => String(h).toLowerCase().trim());
                     const bIdx = headers.indexOf('breakfast');
                     const lIdx = headers.indexOf('lunch');
@@ -203,20 +204,42 @@
             renderSpreadsheetModal();
         }
 
-        // Generator Execution
-        document.getElementById('generateBtn').addEventListener('click', function() {
+        // Shared Generator Engine
+        function displaySuggestions(breakfastArr, lunchArr, dinnerArr) {
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
-            const pick = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No meals added";
+            const pick = (arr) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : "No matches found";
             
             const schema = [
-                { time: "Breakfast", name: pick(db.breakfast) },
-                { time: "Lunch", name: pick(db.lunch) },
-                { time: "Dinner", name: pick(db.dinner) }
+                { time: "Breakfast", name: pick(breakfastArr) },
+                { time: "Lunch", name: pick(lunchArr) },
+                { time: "Dinner", name: pick(dinnerArr) }
             ];
             schema.forEach(s => {
                 out.insertAdjacentHTML('beforeend', `<div class="meal-suggestion"><span class="meal-time">${s.time}</span><span class="meal-name">${s.name}</span></div>`);
             });
+        }
+
+        // Button 1: Unfiltered Generation
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            displaySuggestions(db.breakfast, db.lunch, db.dinner);
+        });
+
+        // Button 2: Meat Filtering Algorithm (Veg + Egg Only)
+        document.getElementById('generateVegEggBtn').addEventListener('click', function() {
+            const meatKeywords = ['chicken', 'mutton', 'fish', 'pork', 'beef', 'meat', 'salmon', 'prawn', 'bacon', 'lamb', 'turkey', 'shrimp', 'crab'];
+            
+            const filterVegEgg = (arr) => arr.filter(item => {
+                const lowerItem = item.toLowerCase();
+                // Return true only if the item contains none of the meat keywords
+                return !meatKeywords.some(keyword => lowerItem.includes(keyword));
+            });
+
+            displaySuggestions(
+                filterVegEgg(db.breakfast),
+                filterVegEgg(db.lunch),
+                filterVegEgg(db.dinner)
+            );
         });
 
         // UI Spreadsheet Modal Operations
@@ -256,7 +279,7 @@
             if(input.value.trim()) { db[cat].push(input.value.trim()); input.value = ""; saveDatabase(); }
         };
 
-        // Export Array Database structures directly out into native .xlsx binary standard
+        // Export Array Database structures directly to Excel (.xlsx)
         document.getElementById('exportExcelBtn').addEventListener('click', function() {
             const maxLength = Math.max(db.breakfast.length, db.lunch.length, db.dinner.length);
             const sheetRows = [["Breakfast", "Lunch", "Dinner"]];
@@ -271,7 +294,7 @@
             XLSX.writeFile(workbook, "Meal_Sync_Database.xlsx");
         });
 
-        // Self-Contained Service Worker Thread
+        // Service Worker
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
