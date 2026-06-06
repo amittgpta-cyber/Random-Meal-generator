@@ -8,9 +8,9 @@
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk1lYWwgU3luYyIsICJzaG9ydF9uYW1lIjogIk1lYWxTeW5jIiwgInN0YXJ0X3VybCI6ICIuLyIsICJkaXNwbGF5IjogImZ1bGxzY3JlZW4iLCAidGhlbWVfY29sb3IiOiAiIzEyMTIxMiIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLCAiaWNvbnMiOiBbe3s6IjE5MngxOTIiLCJ0IjoiaW1hZ2UvcG5nIiwic3JjIjoiaHR0cHM6Ly92aWEucGxhY2Vob2xkZ3IuY29tLzE5MiJ9XX0=">
     
-    <link rel="manifest" href='data:application/json,{"name":"Meal Sync Pro","short_name":"MealSync","start_url":"./index.html","display":"fullscreen","background_color":"#121212","theme_color":"#121212","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2276/2276931.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},{"src":"https://cdn-icons-png.flaticon.com/512/2276/2276931.png","sizes":"192x192","type":"image/png","purpose":"any"}]}' />
-    
+    <!-- Core Engine Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -29,6 +29,8 @@
             --md-sys-color-on-surprise: #4e2600;
             --md-sys-color-fridge: #85e3b3;
             --md-sys-color-on-fridge: #003822;
+            --md-sys-color-success: #34a853;
+            --md-sys-color-on-success: #ffffff;
             --md-sys-color-text: #e3e2e6;
             --md-sys-color-text-variant: #c7c6ca;
             --md-sys-color-error: #ffb4ab;
@@ -173,35 +175,55 @@
             border: 1px solid rgba(255,255,255,0.03);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
             position: relative;
         }
+        .meal-card.locked-state {
+            border: 1px solid var(--md-sys-color-success);
+            background-color: rgba(52, 168, 83, 0.05);
+        }
         .meal-card:hover { background-color: #3d3d3d; }
-        .meal-details { padding: 20px 64px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
+        .meal-card.locked-state:hover { background-color: rgba(52, 168, 83, 0.08); }
+
+        .meal-details { padding: 20px 76px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
         .meal-time { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.5px; }
         .meal-name { font-size: 18px; font-weight: 400; color: var(--md-sys-color-text); }
         .ai-badge { align-self: flex-start; font-size: 10px; font-weight: bold; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .card-refresh-btn {
+        /* Card Controls Column Layout Stack */
+        .card-controls-pane {
             position: absolute;
-            right: 16px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 5;
+        }
+
+        /* Scaled up action triggers for enhanced tactile mobile feedback dimensions */
+        .card-action-trigger {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 255, 255, 0.06);
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--md-sys-color-text-variant);
             transition: background-color 0.2s, color 0.2s, transform 0.1s ease;
-            z-index: 5;
         }
-        .card-refresh-btn:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--md-sys-color-primary); }
-        .card-refresh-btn:active { transform: translateY(-50%) scale(0.9); }
+        
+        .trigger-change { color: var(--md-sys-color-text-variant); }
+        .trigger-change:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--md-sys-color-primary); }
+        
+        .trigger-confirm { color: var(--md-sys-color-text-variant); }
+        .trigger-confirm:hover { background-color: rgba(52, 168, 83, 0.2); color: var(--md-sys-color-fridge); }
+        .meal-card.locked-state .trigger-confirm { background-color: var(--md-sys-color-success); color: white; }
+
+        .card-action-trigger:active { transform: scale(0.88); }
 
         .inline-edit-input {
             background: var(--md-sys-color-background);
@@ -271,6 +293,7 @@
         </div>
     </div>
 
+    <!-- Spreadsheet Data View Management Overlay -->
     <div id="dataModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -295,6 +318,7 @@
                     <button id="clearDbBtn" class="btn btn-secondary" style="margin:0; padding:10px; font-size:13px; color:var(--md-sys-color-error); flex:0.5; border-radius:12px;">🗑️ Reset</button>
                 </div>
 
+                <!-- Unified Three Box Category Input Component -->
                 <div class="unified-add-form">
                     <h4>Add Custom Item Entry</h4>
                     <div class="unified-input-group">
@@ -329,6 +353,7 @@
         </div>
     </div>
 
+    <!-- Fridge Input Prompt Modal Overlay -->
     <div id="fridgeModal" class="modal">
         <div class="modal-content" style="height: auto; max-height: 80vh;">
             <div class="modal-header">
@@ -512,6 +537,7 @@
             return calculationPool[Math.floor(Math.random() * calculationPool.length)];
         }
 
+        // Commits choice selection to historical exclusion memory logging arrays
         function logSingleMealSelection(mealName, timeOfDay) {
             if (mealName === "No meals added") return;
             aiHistory.push({ time: timeOfDay, name: mealName });
@@ -561,9 +587,9 @@
             const finalD = pickFinalResult(dMatches, db.dinner);
 
             renderOutputDeck([
-                { time: `Breakfast ${surpriseUsedB && bMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalB, isSurprise: surpriseUsedB },
-                { time: `Lunch ${surpriseUsedL && lMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalL, isSurprise: surpriseUsedL },
-                { time: `Dinner ${surpriseUsedD && dMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalD, isSurprise: surpriseUsedD }
+                { time: `Breakfast ${surpriseUsedB && bMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalB, isSurprise: surpriseUsedB, isLocked: false },
+                { time: `Lunch ${surpriseUsedL && lMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalL, isSurprise: surpriseUsedL, isLocked: false },
+                { time: `Dinner ${surpriseUsedD && dMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalD, isSurprise: surpriseUsedD, isLocked: false }
             ]);
         }
 
@@ -580,19 +606,57 @@
                             <span class="meal-name" id="suggestion-name-text-${index}">${s.name}</span>
                             ${s.isSurprise ? '' : '<span class="ai-badge">AI Optimized</span>'}
                         </div>
-                        <button class="card-refresh-btn" title="Reroll this category" onclick="refreshSpecificCategoryCard(event, ${index})">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                        </button>
+                        
+                        <!-- Ergonomic Controls Stack Console Panel Row Layout Column mapping -->
+                        <div class="card-controls-pane">
+                            <!-- Change / Reroll Action Trigger -->
+                            <button class="card-action-trigger trigger-change" title="Change" onclick="refreshSpecificCategoryCard(event, ${index})">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                            </button>
+                            
+                            <!-- I'll EAT IT / Lock Option Choice Selection Memory Lock Component -->
+                            <button class="card-action-trigger trigger-confirm" title="I'll EAT IT" onclick="lockChoiceIntoExclusionMemory(event, ${index})">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </button>
+                        </div>
                     </div>
                 `);
             });
         }
 
+        // Commits and locks selected card choice into 7 day recurrence suppression algorithms memory registers
+        window.lockChoiceIntoExclusionMemory = function(event, index) {
+            event.stopPropagation(); // Protect container overlay click intercepts
+            
+            const cardState = currentSuggestionsState[index];
+            const cardElement = document.getElementById(`suggestion-card-${index}`);
+            const baseCategoryLabel = cardState.time.split(' ')[0]; // Breakfast, Lunch, Dinner
+
+            if (cardState.isLocked) return; // Prevent double trigger executions
+
+            // Append item specifically into active exclusions lists mapping nodes
+            logSingleMealSelection(cardState.name, baseCategoryLabel);
+            
+            // Render visual confirmation locked layout metrics styles status
+            cardState.isLocked = true;
+            cardElement.classList.add('locked-state');
+
+            // Brief status toast validation trigger feedback alert layout
+            const statusBadge = document.createElement('span');
+            statusBadge.className = 'ai-badge';
+            statusBadge.style.backgroundColor = 'var(--md-sys-color-success)';
+            statusBadge.style.color = 'white';
+            statusBadge.innerText = "✓ Fixed in Memory";
+            document.getElementById(`suggestion-details-${index}`).appendChild(statusBadge);
+        };
+
         window.refreshSpecificCategoryCard = function(event, index) {
             event.stopPropagation(); 
-            const cardState = currentSuggestionsState[index];
-            const cleanCategoryKey = cardState.time.split(' ')[0].toLowerCase(); 
             
+            const cardState = currentSuggestionsState[index];
+            if (cardState.isLocked) return; // Break routine execution if node choice is locked down
+
+            const cleanCategoryKey = cardState.time.split(' ')[0].toLowerCase(); 
             let newMealName = "No meals added";
 
             if (cardState.isSurprise || cardState.time.includes('Surprise')) {
@@ -607,7 +671,6 @@
             } else {
                 const capitalCategoryLabel = cleanCategoryKey.charAt(0).toUpperCase() + cleanCategoryKey.slice(1);
                 newMealName = getSmartAIMealSelection(db[cleanCategoryKey], capitalCategoryLabel);
-                logSingleMealSelection(newMealName, capitalCategoryLabel);
             }
 
             cardState.name = newMealName;
@@ -616,13 +679,15 @@
         };
 
         window.enableInlineCardEditing = function(index) {
+            const cardState = currentSuggestionsState[index];
+            if (cardState.isLocked) return; // Disable edits if selection is finalized
+
             const detailsBox = document.getElementById(`suggestion-details-${index}`);
-            const textElement = document.getElementById覆(`suggestion-name-text-${index}`);
             const textEl = document.getElementById(`suggestion-name-text-${index}`);
             if (document.getElementById(`inline-input-field-${index}`)) return;
 
             const originalValue = textEl.innerText;
-            const categoryType = currentSuggestionsState[index].time.split(' ')[0].toLowerCase(); 
+            const categoryType = cardState.time.split(' ')[0].toLowerCase(); 
 
             textEl.style.display = "none";
             
@@ -663,19 +728,11 @@
             const bChoice = getSmartAIMealSelection(db.breakfast, "Breakfast");
             const lChoice = getSmartAIMealSelection(db.lunch, "Lunch");
             const dChoice = getSmartAIMealSelection(db.dinner, "Dinner");
-            
-            aiHistory.push({ time: "Breakfast", name: bChoice }, { time: "Lunch", name: lChoice }, { time: "Dinner", name: dChoice });
-            aiWeights[bChoice] = (aiWeights[bChoice] || 1) + 0.5;
-            aiWeights[lChoice] = (aiWeights[lChoice] || 1) + 0.5;
-            aiWeights[dChoice] = (aiWeights[dChoice] || 1) + 0.5;
-            if (aiHistory.length > 42) aiHistory.splice(0, 3);
-            localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(aiHistory));
-            localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
 
             renderOutputDeck([
-                { time: "Breakfast", name: bChoice, isSurprise: false },
-                { time: "Lunch", name: lChoice, isSurprise: false },
-                { time: "Dinner", name: dChoice, isSurprise: false }
+                { time: "Breakfast", name: bChoice, isSurprise: false, isLocked: false },
+                { time: "Lunch", name: lChoice, isSurprise: false, isLocked: false },
+                { time: "Dinner", name: dChoice, isSurprise: false, isLocked: false }
             ]);
         });
 
@@ -690,9 +747,9 @@
             const dSurprise = filterSurprise(surpriseMasterPool.dinner, db.dinner);
 
             renderOutputDeck([
-                { time: "Breakfast (Surprise)", name: bSurprise[Math.floor(Math.random() * bSurprise.length)] || "Veg Upma", isSurprise: true },
-                { time: "Lunch (Surprise)", name: lSurprise[Math.floor(Math.random() * lSurprise.length)] || "Veg Biryani", isSurprise: true },
-                { time: "Dinner (Surprise)", name: dSurprise[Math.floor(Math.random() * dSurprise.length)] || "Pav Bhaji", isSurprise: true }
+                { time: "Breakfast (Surprise)", name: bSurprise[Math.floor(Math.random() * bSurprise.length)] || "Veg Upma", isSurprise: true, isLocked: false },
+                { time: "Lunch (Surprise)", name: lSurprise[Math.floor(Math.random() * lSurprise.length)] || "Veg Biryani", isSurprise: true, isLocked: false },
+                { time: "Dinner (Surprise)", name: dSurprise[Math.floor(Math.random() * dSurprise.length)] || "Pav Bhaji", isSurprise: true, isLocked: false }
             ]);
         });
 
