@@ -279,18 +279,16 @@
       dinner: ['Egg Biryani','Paneer Bhurji Chutney','Noodles Pasta','Methi Aalu Moong Daal Roti','Egg Curry Rice','Jeera Aalu Roti','Khichdi Dahi Achar','Daliya Veg','Sattu Paratha','Rajma Chawal','Chole Chawal','Paneer Sabji Roti','Lauki Sabji Roti','Chicken Curry Rice','Fish Curry Rice','Grilled Chicken with Rice']
     };
 
-    const surpriseInternetMeals = {
-      veg: {
-        breakfast: ['Poha','Upma','Idli Chutney Sambhar','Dosa Sambhar Chutney','Paneer Sandwich','Moong Daal Cheela'],
-        lunch: ['Rajma Chawal','Chole Chawal','Paneer Sabji Roti','Lauki Kofta Chawal','Mix Daal Roti','Matar Aalu Sabji Chawal Roti'],
-        dinner: ['Paneer Bhurji Chutney','Khichdi Dahi Achar','Daliya Veg','Sattu Paratha','Lauki Sabji Roti','Jeera Aalu Roti']
-      },
-      nonveg: {
-        breakfast: ['Omelette','Bun Omelette','Egg Bhurji','Bread Omelette','Egg Sandwich','Masala Scrambled Eggs'],
-        lunch: ['Egg Curry Rice','Chicken Curry Rice','Chicken Biryani','Fish Curry Rice','Grilled Chicken with Rice','Egg Biryani'],
-        dinner: ['Egg Curry Rice','Egg Biryani','Chicken Curry Rice','Grilled Chicken with Rice','Fish Curry Rice','Chicken Fried Rice']
-      }
-    };
+    // Function to fetch a surprise meal from the internet
+async function fetchSurpriseMealFromInternet() {
+    try {
+        const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
+        const data = await response.json();
+        return data.meals ? data.meals[0].strMeal : "Surprise Dish";
+    } catch {
+        return "Surprise Dish";
+    }
+}
 
     const state = {
       db: structuredClone(freshSeedData),
@@ -835,9 +833,34 @@
       return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     }
     function escapeAttr(str) { return escapeHtml(str); }
+    // This tells the computer how to talk to the restaurant website
+async function fetchSurpriseMealFromInternet() {
+    try {
+        const res = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
+        const data = await res.json();
+        return data.meals ? data.meals[0].strMeal : "Surprise Dish";
+    } catch {
+        return "Surprise Dish";
+    }
+}
 
     document.getElementById('generateBtn').addEventListener('click', generateDefaultSuggestions);
-    document.getElementById('surpriseBtn').addEventListener('click', generateSurpriseSuggestions);
+    document.getElementById('surpriseBtn').addEventListener('click', async function() {
+    // 1. Show loading state
+    els.suggestions.innerHTML = '<div style="text-align:center; padding:20px;">Fetching global inspirations...</div>';
+    
+    // 2. Fetch 3 fresh meals from the internet
+    const b = await fetchSurpriseMealFromInternet();
+    const l = await fetchSurpriseMealFromInternet();
+    const d = await fetchSurpriseMealFromInternet();
+
+    // 3. Render them on screen
+    renderOutputDeck([
+        { time: "Breakfast (Internet)", name: b, isSurprise: true, isLocked: false },
+        { time: "Lunch (Internet)", name: l, isSurprise: true, isLocked: false },
+        { time: "Dinner (Internet)", name: d, isSurprise: true, isLocked: false }
+    ]);
+});
     document.getElementById('fridgeBtn').addEventListener('click', () => openModal(els.fridgeModal));
     document.getElementById('submitFridgeIngredientsBtn').addEventListener('click', runFridgeMatchingPipeline);
     document.getElementById('openDataBtn').addEventListener('click', () => { openModal(els.dataModal); renderSpreadsheetModal(); });
