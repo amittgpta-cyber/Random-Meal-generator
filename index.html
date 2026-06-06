@@ -36,7 +36,6 @@
             background-color: var(--md-sys-color-background); 
             color: var(--md-sys-color-text);
             margin: 0; 
-            /* Added padding-bottom to completely clear the fixed console height plus safety margins */
             padding: calc(24px + env(safe-area-inset-top)) 20px calc(240px + env(safe-area-inset-bottom)) 20px; 
             display: flex; 
             flex-direction: column; 
@@ -85,15 +84,6 @@
             line-height: 1.25;
         }
         
-        .card { 
-            background: var(--md-sys-color-surface); 
-            padding: 20px; 
-            border-radius: 28px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
-            margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.04);
-        }
-
         .btn { 
             border: none; 
             padding: 16px 24px; 
@@ -156,7 +146,6 @@
         
         #uploadStatus { font-weight: 500; color: var(--md-sys-color-primary); font-size: 13px; white-space: pre-line; margin-bottom: 16px; text-align: center; }
         
-        /* Layout optimized to stack from the top down normally, letting natural body padding prevent blockages */
         .suggestion-list { 
             display: flex; 
             flex-direction: column; 
@@ -171,11 +160,43 @@
             border-radius: 24px;
             border: 1px solid rgba(255,255,255,0.03);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .meal-card:hover {
+            background-color: #3d3d3d;
         }
         .meal-details { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
         .meal-time { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.5px; }
         .meal-name { font-size: 18px; font-weight: 400; color: var(--md-sys-color-text); }
         .ai-badge { align-self: flex-start; font-size: 10px; font-weight: bold; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Inline card inline-edit text fields element workspace styles */
+        .inline-edit-input {
+            background: var(--md-sys-color-background);
+            color: var(--md-sys-color-text);
+            border: 1px solid var(--md-sys-color-primary);
+            border-radius: 8px;
+            font-size: 18px;
+            padding: 8px 12px;
+            margin-top: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .inline-edit-input:focus { outline: none; }
+        .inline-save-btn {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            align-self: flex-end;
+            margin-top: 8px;
+        }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
         .modal-content { background: var(--md-sys-color-surface); width: 92%; max-width: 500px; height: 90vh; border-radius: 32px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
@@ -301,6 +322,9 @@
 
         let aiHistory = JSON.parse(localStorage.getItem(AI_HISTORY_KEY)) || [];
         let aiWeights = JSON.parse(localStorage.getItem(AI_WEIGHTS_KEY)) || {};
+
+        // Tracking active generation card state nodes to allow instant inline value replacements
+        let currentSuggestionsState = [];
 
         let excelViewActive = false;
         const status = document.getElementById('uploadStatus');
@@ -457,21 +481,76 @@
             localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
         }
 
+        // Expanded Output renderer tracking state indices allowing rapid modification parameters
         function renderOutputDeck(schema) {
+            currentSuggestionsState = JSON.parse(JSON.stringify(schema)); // Deep copy state array
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
-            schema.forEach(s => {
+            
+            currentSuggestionsState.forEach((s, index) => {
                 out.insertAdjacentHTML('beforeend', `
-                    <div class="meal-card">
-                        <div class="meal-details">
+                    <div class="meal-card" id="suggestion-card-${index}" onclick="enableInlineCardEditing(${index})">
+                        <div class="meal-details" id="suggestion-details-${index}">
                             <span class="meal-time">${s.time}</span>
-                            <span class="meal-name">${s.name}</span>
-                            <span class="ai-badge">AI Optimized</span>
+                            <span class="meal-name" id="suggestion-name-text-${index}">${s.name}</span>
+                            ${s.isSurprise ? '' : '<span class="ai-badge">AI Optimized</span>'}
                         </div>
                     </div>
                 `);
             });
         }
+
+        // Converts individual output row items down to input fields allowing direct file modifications
+        window.enableInlineCardEditing = function(index) {
+            const detailsBox = document.getElementById(`suggestion-details-${index}`);
+            const textElement = document.getElementById(`suggestion-name-text-${index}`);
+            
+            // Check if input element is already generated to prevent looping overlaps
+            if (document.getElementById(`inline-input-field-${index}`)) return;
+
+            const originalValue = textElement.innerText;
+            const categoryType = currentSuggestionsState[index].time.split(' ')[0].toLowerCase(); // e.g., breakfast
+
+            // Intercepting card touch down events to swap out labels with interactive fields
+            textElement.style.display = "none";
+            
+            const editableStructure = `
+                <div id="inline-edit-wrap-${index}" onclick="event.stopPropagation();" style="width:100%; display:flex; flex-direction:column;">
+                    <input type="text" id="inline-input-field-${index}" class="inline-edit-input" value="${originalValue}">
+                    <button class="inline-save-btn" onclick="commitInlineCardUpdate(${index}, '${categoryType}', '${originalValue}')">SAVE</button>
+                </div>
+            `;
+            detailsBox.insertAdjacentHTML('beforeend', editableStructure);
+            document.getElementById(`inline-input-field-${index}`).focus();
+        };
+
+        // Commits changes performed directly inside suggestion elements straight back into local storage database
+        window.commitInlineCardUpdate = function(index, category, oldValue) {
+            const inputField = document.getElementById(`inline-input-field-${index}`);
+            const newValue = inputField.value.trim();
+
+            if (newValue && newValue !== oldValue) {
+                // Find matching original text row element index pointer inside running matrix array
+                const dbIndex = db[category].indexOf(oldValue);
+                if (dbIndex !== -1) {
+                    db[category][dbIndex] = newValue; // Update targeted column element directly
+                } else {
+                    db[category].push(newValue); // Append if missing
+                }
+                
+                // Save out mutations globally
+                localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
+                currentSuggestionsState[index].name = newValue;
+            }
+
+            // Restore element back to unified text node layout
+            const wrap = document.getElementById(`inline-edit-wrap-${index}`);
+            if (wrap) wrap.remove();
+            
+            const textElement = document.getElementById(`suggestion-name-text-${index}`);
+            textElement.innerText = newValue || oldValue;
+            textElement.style.display = "block";
+        };
 
         document.getElementById('generateBtn').addEventListener('click', function() {
             const bChoice = getSmartAIMealSelection(db.breakfast, "Breakfast");
@@ -481,9 +560,9 @@
             logSelectedMealsToAI(bChoice, lChoice, dChoice);
 
             renderOutputDeck([
-                { time: "Breakfast", name: bChoice },
-                { time: "Lunch", name: lChoice },
-                { time: "Dinner", name: dChoice }
+                { time: "Breakfast", name: bChoice, isSurprise: false },
+                { time: "Lunch", name: lChoice, isSurprise: false },
+                { time: "Dinner", name: dChoice, isSurprise: false }
             ]);
         });
 
@@ -498,9 +577,9 @@
             const dSurprise = filterSurprise(surpriseMasterPool.dinner, db.dinner);
 
             renderOutputDeck([
-                { time: "Breakfast (Surprise)", name: bSurprise[Math.floor(Math.random() * bSurprise.length)] || "Veg Upma" },
-                { time: "Lunch (Surprise)", name: lSurprise[Math.floor(Math.random() * lSurprise.length)] || "Veg Biryani" },
-                { time: "Dinner (Surprise)", name: dSurprise[Math.floor(Math.random() * dSurprise.length)] || "Pav Bhaji" }
+                { time: "Breakfast (Surprise)", name: bSurprise[Math.floor(Math.random() * bSurprise.length)] || "Veg Upma", isSurprise: true },
+                { time: "Lunch (Surprise)", name: lSurprise[Math.floor(Math.random() * lSurprise.length)] || "Veg Biryani", isSurprise: true },
+                { time: "Dinner (Surprise)", name: dSurprise[Math.floor(Math.random() * dSurprise.length)] || "Pav Bhaji", isSurprise: true }
             ]);
         });
 
