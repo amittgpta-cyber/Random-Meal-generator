@@ -162,16 +162,43 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             cursor: pointer;
             transition: background-color 0.2s ease;
+            position: relative;
         }
         .meal-card:hover {
             background-color: #3d3d3d;
         }
-        .meal-details { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+        .meal-details { padding: 20px 64px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
         .meal-time { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.5px; }
         .meal-name { font-size: 18px; font-weight: 400; color: var(--md-sys-color-text); }
         .ai-badge { align-self: flex-start; font-size: 10px; font-weight: bold; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Inline card inline-edit text fields element workspace styles */
+        /* Dedicated Category Refresh Button Positioning */
+        .card-refresh-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-sys-color-text-variant);
+            transition: background-color 0.2s, color 0.2s, transform 0.1s ease;
+            z-index: 5;
+        }
+        .card-refresh-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--md-sys-color-primary);
+        }
+        .card-refresh-btn:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+
         .inline-edit-input {
             background: var(--md-sys-color-background);
             color: var(--md-sys-color-text);
@@ -323,10 +350,9 @@
         let aiHistory = JSON.parse(localStorage.getItem(AI_HISTORY_KEY)) || [];
         let aiWeights = JSON.parse(localStorage.getItem(AI_WEIGHTS_KEY)) || {};
 
-        // Tracking active generation card state nodes to allow instant inline value replacements
         let currentSuggestionsState = [];
-
         let excelViewActive = false;
+        
         const status = document.getElementById('uploadStatus');
         const dataModal = document.getElementById('dataModal');
         const modalTableBody = document.getElementById('modalTableBody');
@@ -462,18 +488,10 @@
             return calculationPool[Math.floor(Math.random() * calculationPool.length)];
         }
 
-        function logSelectedMealsToAI(breakfast, lunch, dinner) {
-            const meals = [
-                { time: "Breakfast", name: breakfast },
-                { time: "Lunch", name: lunch },
-                { time: "Dinner", name: dinner }
-            ];
-
-            meals.forEach(m => {
-                if (m.name === "No meals added") return;
-                aiHistory.push(m);
-                aiWeights[m.name] = (aiWeights[m.name] || 1) + 0.5;
-            });
+        function logSingleMealSelection(mealName, timeOfDay) {
+            if (mealName === "No meals added") return;
+            aiHistory.push({ time: timeOfDay, name: mealName });
+            aiWeights[mealName] = (aiWeights[mealName] || 1) + 0.5;
 
             if (aiHistory.length > 42) aiHistory.shift();
 
@@ -481,9 +499,8 @@
             localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
         }
 
-        // Expanded Output renderer tracking state indices allowing rapid modification parameters
         function renderOutputDeck(schema) {
-            currentSuggestionsState = JSON.parse(JSON.stringify(schema)); // Deep copy state array
+            currentSuggestionsState = JSON.parse(JSON.stringify(schema)); 
             const out = document.getElementById('suggestions');
             out.innerHTML = "";
             
@@ -495,23 +512,55 @@
                             <span class="meal-name" id="suggestion-name-text-${index}">${s.name}</span>
                             ${s.isSurprise ? '' : '<span class="ai-badge">AI Optimized</span>'}
                         </div>
+                        
+                        <button class="card-refresh-btn" title="Reroll this category" onclick="refreshSpecificCategoryCard(event, ${index})">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        </button>
                     </div>
                 `);
             });
         }
 
-        // Converts individual output row items down to input fields allowing direct file modifications
+        // Target and substitute individual active array categories out of core database mappings natively
+        window.refreshSpecificCategoryCard = function(event, index) {
+            event.stopPropagation(); // Block wrapper dialog inline-editor interception nodes
+            
+            const cardState = currentSuggestionsState[index];
+            const cleanCategoryKey = cardState.time.split(' ')[0].toLowerCase(); // breakfast, lunch, dinner
+            
+            let newMealName = "No meals added";
+
+            if (cardState.isSurprise) {
+                // Pull a fresh combination from the Surprise pool excluding existing database structures
+                const filterSurprise = (pool, userDb) => {
+                    const normalizedDb = userDb.map(i => i.toLowerCase().trim());
+                    return pool.filter(i => !normalizedDb.includes(i.toLowerCase().trim()));
+                };
+                const surprisePool = filterSurprise(surpriseMasterPool[cleanCategoryKey], db[cleanCategoryKey]);
+                if (surprisePool.length) {
+                    newMealName = surprisePool[Math.floor(Math.random() * surprisePool.length)];
+                }
+            } else {
+                // standard operational flow using statistical learning logic
+                const capitalCategoryLabel = cleanCategoryKey.charAt(0).toUpperCase() + cleanCategoryKey.slice(1);
+                newMealName = getSmartAIMealSelection(db[cleanCategoryKey], capitalCategoryLabel);
+                logSingleMealSelection(newMealName, capitalCategoryLabel);
+            }
+
+            // Sync visual node texts and state trackers instantly
+            cardState.name = newMealName;
+            const textElement = document.getElementById(`suggestion-name-text-${index}`);
+            if (textElement) textElement.innerText = newMealName;
+        };
+
         window.enableInlineCardEditing = function(index) {
             const detailsBox = document.getElementById(`suggestion-details-${index}`);
             const textElement = document.getElementById(`suggestion-name-text-${index}`);
-            
-            // Check if input element is already generated to prevent looping overlaps
             if (document.getElementById(`inline-input-field-${index}`)) return;
 
             const originalValue = textElement.innerText;
-            const categoryType = currentSuggestionsState[index].time.split(' ')[0].toLowerCase(); // e.g., breakfast
+            const categoryType = currentSuggestionsState[index].time.split(' ')[0].toLowerCase(); 
 
-            // Intercepting card touch down events to swap out labels with interactive fields
             textElement.style.display = "none";
             
             const editableStructure = `
@@ -524,26 +573,21 @@
             document.getElementById(`inline-input-field-${index}`).focus();
         };
 
-        // Commits changes performed directly inside suggestion elements straight back into local storage database
         window.commitInlineCardUpdate = function(index, category, oldValue) {
             const inputField = document.getElementById(`inline-input-field-${index}`);
             const newValue = inputField.value.trim();
 
             if (newValue && newValue !== oldValue) {
-                // Find matching original text row element index pointer inside running matrix array
                 const dbIndex = db[category].indexOf(oldValue);
                 if (dbIndex !== -1) {
-                    db[category][dbIndex] = newValue; // Update targeted column element directly
+                    db[category][dbIndex] = newValue;
                 } else {
-                    db[category].push(newValue); // Append if missing
+                    db[category].push(newValue);
                 }
-                
-                // Save out mutations globally
                 localStorage.setItem(EXCEL_DB_KEY, JSON.stringify(db));
                 currentSuggestionsState[index].name = newValue;
             }
 
-            // Restore element back to unified text node layout
             const wrap = document.getElementById(`inline-edit-wrap-${index}`);
             if (wrap) wrap.remove();
             
@@ -557,7 +601,14 @@
             const lChoice = getSmartAIMealSelection(db.lunch, "Lunch");
             const dChoice = getSmartAIMealSelection(db.dinner, "Dinner");
             
-            logSelectedMealsToAI(bChoice, lChoice, dChoice);
+            // Bulk tracking execution logic
+            aiHistory.push({ time: "Breakfast", name: bChoice }, { time: "Lunch", name: lChoice }, { time: "Dinner", name: dChoice });
+            aiWeights[bChoice] = (aiWeights[bChoice] || 1) + 0.5;
+            aiWeights[lChoice] = (aiWeights[lChoice] || 1) + 0.5;
+            aiWeights[dChoice] = (aiWeights[dChoice] || 1) + 0.5;
+            if (aiHistory.length > 42) aiHistory.splice(0, 3);
+            localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(aiHistory));
+            localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
 
             renderOutputDeck([
                 { time: "Breakfast", name: bChoice, isSurprise: false },
