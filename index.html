@@ -433,23 +433,7 @@ async function fetchSurpriseMealFromInternet() {
       ]);
     }
 
-    function generateSurpriseSuggestions() {
-      const mode = state.foodMode === 'nonveg' ? 'nonveg' : 'veg';
-      const pool = surpriseInternetMeals[mode];
-      const allDb = state.db.breakfast.concat(state.db.lunch, state.db.dinner).map(x => x.toLowerCase());
-      const used = new Set();
-      const dedupe = arr => arr.filter(m => !allDb.includes(m.toLowerCase()) && !used.has(m.toLowerCase()));
-      const pick = a => a[Math.floor(Math.random() * a.length)] || 'No meals added';
-      const bPool = dedupe(pool.breakfast); if (bPool[0]) used.add(bPool[0].toLowerCase());
-      const lPool = dedupe(pool.lunch); if (lPool[0]) used.add(lPool[0].toLowerCase());
-      const dPool = dedupe(pool.dinner);
-      renderOutputDeck([
-        buildCard('Breakfast Surprise', pick(bPool.length ? bPool : pool.breakfast), { isSurprise: true, internetHint: 'Internet-based suggestions only', sourceType: 'surprise' }),
-        buildCard('Lunch Surprise', pick(lPool.length ? lPool : pool.lunch), { isSurprise: true, internetHint: 'Internet-based suggestions only', sourceType: 'surprise' }),
-        buildCard('Dinner Surprise', pick(dPool.length ? dPool : pool.dinner), { isSurprise: true, internetHint: 'Internet-based suggestions only', sourceType: 'surprise' })
-      ]);
-    }
-
+    
     function runFridgeMatchingPipeline() {
       const raw = document.getElementById('fridgeIngredientsInput').value.trim();
       if (!raw) { alert('Please type at least one ingredient.'); return; }
