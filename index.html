@@ -26,6 +26,8 @@
             --md-sys-color-on-secondary: #003355;
             --md-sys-color-surprise: #ffb74d;
             --md-sys-color-on-surprise: #4e2600;
+            --md-sys-color-fridge: #85e3b3;
+            --md-sys-color-on-fridge: #003822;
             --md-sys-color-text: #e3e2e6;
             --md-sys-color-text-variant: #c7c6ca;
             --md-sys-color-error: #ffb4ab;
@@ -36,7 +38,7 @@
             background-color: var(--md-sys-color-background); 
             color: var(--md-sys-color-text);
             margin: 0; 
-            padding: calc(24px + env(safe-area-inset-top)) 20px calc(240px + env(safe-area-inset-bottom)) 20px; 
+            padding: calc(24px + env(safe-area-inset-top)) 20px calc(290px + env(safe-area-inset-bottom)) 20px; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
@@ -113,7 +115,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 14px; 
+            gap: 12px; 
             z-index: 99;
             pointer-events: auto;
         }
@@ -131,6 +133,15 @@
         .btn-fab-surprise { 
             background-color: var(--md-sys-color-surprise); 
             color: var(--md-sys-color-on-surprise);
+            font-size: 15px;
+            font-weight: 600;
+            padding: 16px 24px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .btn-fab-fridge {
+            background-color: var(--md-sys-color-fridge);
+            color: var(--md-sys-color-on-fridge);
             font-size: 15px;
             font-weight: 600;
             padding: 16px 24px;
@@ -164,15 +175,12 @@
             transition: background-color 0.2s ease;
             position: relative;
         }
-        .meal-card:hover {
-            background-color: #3d3d3d;
-        }
+        .meal-card:hover { background-color: #3d3d3d; }
         .meal-details { padding: 20px 64px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
         .meal-time { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--md-sys-color-primary); letter-spacing: 0.5px; }
         .meal-name { font-size: 18px; font-weight: 400; color: var(--md-sys-color-text); }
         .ai-badge { align-self: flex-start; font-size: 10px; font-weight: bold; background: rgba(168, 199, 250, 0.15); color: var(--md-sys-color-primary); padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Dedicated Category Refresh Button Positioning */
         .card-refresh-btn {
             position: absolute;
             right: 16px;
@@ -191,13 +199,8 @@
             transition: background-color 0.2s, color 0.2s, transform 0.1s ease;
             z-index: 5;
         }
-        .card-refresh-btn:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: var(--md-sys-color-primary);
-        }
-        .card-refresh-btn:active {
-            transform: translateY(-50%) scale(0.9);
-        }
+        .card-refresh-btn:hover { background-color: rgba(255, 255, 255, 0.15); color: var(--md-sys-color-primary); }
+        .card-refresh-btn:active { transform: translateY(-50%) scale(0.9); }
 
         .inline-edit-input {
             background: var(--md-sys-color-background);
@@ -261,6 +264,7 @@
         <main id="suggestions" class="suggestion-list"></main>
 
         <div class="bottom-action-console">
+            <button id="fridgeBtn" class="btn btn-fab-fridge">🥦 What's in the Fridge!</button>
             <button id="surpriseBtn" class="btn btn-fab-surprise">✨ Surprise ME!</button>
             <button id="generateBtn" class="btn btn-fab-main">🍽️ what can I EAT today!</button>
         </div>
@@ -324,6 +328,20 @@
         </div>
     </div>
 
+    <div id="fridgeModal" class="modal">
+        <div class="modal-content" style="height: auto; max-height: 80vh;">
+            <div class="modal-header">
+                <h3 style="margin:0; font-weight:400; color:var(--md-sys-color-text);">What's in the Fridge?</h3>
+                <button id="closeFridgeBtn" style="background:none; border:none; font-size:28px; cursor:pointer; color:var(--md-sys-color-text-variant);">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin:0 0 16px 0; font-size:14px; color:var(--md-sys-color-text-variant);">Enter raw ingredients or items available (separated by commas):</p>
+                <input type="text" id="fridgeIngredientsInput" class="add-input" placeholder="e.g., Paneer, Shimla Mirch, Aaloo, Tomato" style="margin-bottom:16px;">
+                <button id="submitFridgeIngredientsBtn" class="btn btn-primary" style="margin:0; border-radius:12px; background-color:var(--md-sys-color-fridge); color:var(--md-sys-color-on-fridge);">🔍 Match Ingredients</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
@@ -355,6 +373,7 @@
         
         const status = document.getElementById('uploadStatus');
         const dataModal = document.getElementById('dataModal');
+        const fridgeModal = document.getElementById('fridgeModal');
         const modalTableBody = document.getElementById('modalTableBody');
         const modalExcelBody = document.getElementById('modalExcelBody');
         const modalToolbar = document.getElementById('modalToolbar');
@@ -364,6 +383,11 @@
 
         document.getElementById('fileUploadInput').addEventListener('change', handleFileRouting);
         document.getElementById('cameraCaptureInput').addEventListener('change', handleFileRouting);
+
+        // Fridge Interaction UI Triggers
+        document.getElementById('fridgeBtn').addEventListener('click', () => { fridgeModal.style.display = "flex"; });
+        document.getElementById('closeFridgeBtn').addEventListener('click', () => { fridgeModal.style.display = "none"; });
+        document.getElementById('submitFridgeIngredientsBtn').addEventListener('click', runFridgeMatchingPipeline);
 
         function handleFileRouting(e) {
             const file = e.target.files[0];
@@ -491,12 +515,63 @@
         function logSingleMealSelection(mealName, timeOfDay) {
             if (mealName === "No meals added") return;
             aiHistory.push({ time: timeOfDay, name: mealName });
-            aiWeights[mealName] = (aiWeights[mealName] || 1) + 0.5;
+            aiWeights[mealName] = (aiWeights[makhani] || 1) + 0.5;
 
             if (aiHistory.length > 42) aiHistory.shift();
 
             localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(aiHistory));
             localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
+        }
+
+        // --- Core Ingredient Matching Pipeline Logic Engine ---
+        function runFridgeMatchingPipeline() {
+            const rawInput = document.getElementById('fridgeIngredientsInput').value.trim();
+            if (!rawInput) {
+                alert("Please type at least one raw ingredient item.");
+                return;
+            }
+
+            // Split and normalize user raw items query array values
+            const items = rawInput.toLowerCase().split(',').map(i => i.trim()).filter(i => i.length > 1);
+            if (!items.length) return;
+
+            fridgeModal.style.display = "none"; // Close view overlay drawer sheet bounds
+
+            // Helper to scan a pool array list for matching keywords
+            const findBestPoolMatches = (sourcePool) => {
+                return sourcePool.filter(meal => {
+                    const lowerMeal = meal.toLowerCase();
+                    return items.some(ingredient => lowerMeal.includes(ingredient));
+                });
+            };
+
+            // Step 1: Scan master main spreadsheet source database first
+            let bMatches = findBestPoolMatches(db.breakfast);
+            let lMatches = findBestPoolMatches(db.lunch);
+            let dMatches = findBestPoolMatches(db.dinner);
+
+            // Step 2: Fall back to cross-matching Surprise Master Pool lists if no main DB row values correspond
+            let surpriseUsedB = false, surpriseUsedL = false, surpriseUsedD = false;
+            
+            if (!bMatches.length) { bMatches = findBestPoolMatches(surpriseMasterPool.breakfast); surpriseUsedB = true; }
+            if (!lMatches.length) { lMatches = findBestPoolMatches(surpriseMasterPool.lunch); surpriseUsedL = true; }
+            if (!dMatches.length) { dMatches = findBestPoolMatches(surpriseMasterPool.dinner); surpriseUsedD = true; }
+
+            // Step 3: Global random fallback if absolutely zero partial matching constraints exist in either pool
+            const pickFinalResult = (matchPool, fallbackSource) => {
+                return matchPool.length ? matchPool[Math.floor(Math.random() * matchPool.length)] : fallbackSource[Math.floor(Math.random() * fallbackSource.length)];
+            };
+
+            const finalB = pickFinalResult(bMatches, db.breakfast);
+            const finalL = pickFinalResult(lMatches, db.lunch);
+            const finalD = pickFinalResult(dMatches, db.dinner);
+
+            // Output formatting array payload mapping labels contextually
+            renderOutputDeck([
+                { time: `Breakfast ${surpriseUsedB && bMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalB, isSurprise: surpriseUsedB },
+                { time: `Lunch ${surpriseUsedL && lMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalL, isSurprise: surpriseUsedL },
+                { time: `Dinner ${surpriseUsedD && dMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalD, isSurprise: surpriseUsedD }
+            ]);
         }
 
         function renderOutputDeck(schema) {
@@ -512,7 +587,6 @@
                             <span class="meal-name" id="suggestion-name-text-${index}">${s.name}</span>
                             ${s.isSurprise ? '' : '<span class="ai-badge">AI Optimized</span>'}
                         </div>
-                        
                         <button class="card-refresh-btn" title="Reroll this category" onclick="refreshSpecificCategoryCard(event, ${index})">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                         </button>
@@ -521,17 +595,14 @@
             });
         }
 
-        // Target and substitute individual active array categories out of core database mappings natively
         window.refreshSpecificCategoryCard = function(event, index) {
-            event.stopPropagation(); // Block wrapper dialog inline-editor interception nodes
-            
+            event.stopPropagation(); 
             const cardState = currentSuggestionsState[index];
-            const cleanCategoryKey = cardState.time.split(' ')[0].toLowerCase(); // breakfast, lunch, dinner
+            const cleanCategoryKey = cardState.time.split(' ')[0].toLowerCase(); 
             
             let newMealName = "No meals added";
 
-            if (cardState.isSurprise) {
-                // Pull a fresh combination from the Surprise pool excluding existing database structures
+            if (cardState.isSurprise || cardState.time.includes('Surprise')) {
                 const filterSurprise = (pool, userDb) => {
                     const normalizedDb = userDb.map(i => i.toLowerCase().trim());
                     return pool.filter(i => !normalizedDb.includes(i.toLowerCase().trim()));
@@ -541,16 +612,15 @@
                     newMealName = surprisePool[Math.floor(Math.random() * surprisePool.length)];
                 }
             } else {
-                // standard operational flow using statistical learning logic
                 const capitalCategoryLabel = cleanCategoryKey.charAt(0).toUpperCase() + cleanCategoryKey.slice(1);
                 newMealName = getSmartAIMealSelection(db[cleanCategoryKey], capitalCategoryLabel);
                 logSingleMealSelection(newMealName, capitalCategoryLabel);
             }
 
-            // Sync visual node texts and state trackers instantly
             cardState.name = newMealName;
-            const textElement = document.getElementById(`suggestion-name-text-${index}`);
-            if (textElement) textElement.innerText = newMealName;
+            const textElement = document.getElementById覆(`suggestion-name-text-${index}`);
+            const textEl = document.getElementById(`suggestion-name-text-${index}`);
+            if (textEl) textEl.innerText = newMealName;
         };
 
         window.enableInlineCardEditing = function(index) {
@@ -601,7 +671,6 @@
             const lChoice = getSmartAIMealSelection(db.lunch, "Lunch");
             const dChoice = getSmartAIMealSelection(db.dinner, "Dinner");
             
-            // Bulk tracking execution logic
             aiHistory.push({ time: "Breakfast", name: bChoice }, { time: "Lunch", name: lChoice }, { time: "Dinner", name: dChoice });
             aiWeights[bChoice] = (aiWeights[bChoice] || 1) + 0.5;
             aiWeights[lChoice] = (aiWeights[lChoice] || 1) + 0.5;
