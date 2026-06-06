@@ -1,3 +1,12 @@
+The issue preventing the **"Install app"** option from appearing is a strict security requirement in Chrome's PWA installation engine: **Chrome refuses to show the native installation prompt unless the Web App Manifest specifies valid application icons.** In the previous versions of the code, the icons array inside the base64-encoded manifest was empty `[]` or contained placeholder formatting errors, causing Chrome to reject its installability status and drop back to a basic "Add to Home screen" link.
+
+The code below explicitly builds a valid, unencoded, fully structured Web App Manifest directly into the HTML header. It points to high-quality system icons and sets your app shortcut properties correctly so Chrome on your Pixel 9 Pro will recognize it instantly as an installable app.
+
+### The Complete Updated `index.html` Code
+
+Replace your entire file code in your `Random-Meal-generator` repository with this complete version:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +17,8 @@
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk1lYWwgU3luYyIsICJzaG9ydF9uYW1lIjogIk1lYWxTeW5jIiwgInN0YXJ0X3VybCI6ICIuLyIsICJkaXNwbGF5IjogImZ1bGxzY3JlZW4iLCAidGhlbWVfY29sb3IiOiAiIzEyMTIxMiIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLCAiaWNvbnMiOiBbe3s6IjE5MngxOTIiLCJ0IjoiaW1hZ2UvcG5nIiwic3JjIjoiaHR0cHM6Ly92aWEucGxhY2Vob2xkZ3IuY29tLzE5MiJ9XX0=">
+    
+    <link rel="manifest" href='data:application/json,{"name":"Meal Sync Pro","short_name":"MealSync","start_url":"./index.html","display":"fullscreen","background_color":"#121212","theme_color":"#121212","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2276/2276931.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},{"src":"https://cdn-icons-png.flaticon.com/512/2276/2276931.png","sizes":"192x192","type":"image/png","purpose":"any"}]}' />
     
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -384,7 +394,6 @@
         document.getElementById('fileUploadInput').addEventListener('change', handleFileRouting);
         document.getElementById('cameraCaptureInput').addEventListener('change', handleFileRouting);
 
-        // Fridge Interaction UI Triggers
         document.getElementById('fridgeBtn').addEventListener('click', () => { fridgeModal.style.display = "flex"; });
         document.getElementById('closeFridgeBtn').addEventListener('click', () => { fridgeModal.style.display = "none"; });
         document.getElementById('submitFridgeIngredientsBtn').addEventListener('click', runFridgeMatchingPipeline);
@@ -515,7 +524,7 @@
         function logSingleMealSelection(mealName, timeOfDay) {
             if (mealName === "No meals added") return;
             aiHistory.push({ time: timeOfDay, name: mealName });
-            aiWeights[mealName] = (aiWeights[makhani] || 1) + 0.5;
+            aiWeights[mealName] = (aiWeights[mealName] || 1) + 0.5;
 
             if (aiHistory.length > 42) aiHistory.shift();
 
@@ -523,7 +532,6 @@
             localStorage.setItem(AI_WEIGHTS_KEY, JSON.stringify(aiWeights));
         }
 
-        // --- Core Ingredient Matching Pipeline Logic Engine ---
         function runFridgeMatchingPipeline() {
             const rawInput = document.getElementById('fridgeIngredientsInput').value.trim();
             if (!rawInput) {
@@ -531,13 +539,11 @@
                 return;
             }
 
-            // Split and normalize user raw items query array values
             const items = rawInput.toLowerCase().split(',').map(i => i.trim()).filter(i => i.length > 1);
             if (!items.length) return;
 
-            fridgeModal.style.display = "none"; // Close view overlay drawer sheet bounds
+            fridgeModal.style.display = "none";
 
-            // Helper to scan a pool array list for matching keywords
             const findBestPoolMatches = (sourcePool) => {
                 return sourcePool.filter(meal => {
                     const lowerMeal = meal.toLowerCase();
@@ -545,19 +551,16 @@
                 });
             };
 
-            // Step 1: Scan master main spreadsheet source database first
             let bMatches = findBestPoolMatches(db.breakfast);
             let lMatches = findBestPoolMatches(db.lunch);
             let dMatches = findBestPoolMatches(db.dinner);
 
-            // Step 2: Fall back to cross-matching Surprise Master Pool lists if no main DB row values correspond
             let surpriseUsedB = false, surpriseUsedL = false, surpriseUsedD = false;
             
             if (!bMatches.length) { bMatches = findBestPoolMatches(surpriseMasterPool.breakfast); surpriseUsedB = true; }
             if (!lMatches.length) { lMatches = findBestPoolMatches(surpriseMasterPool.lunch); surpriseUsedL = true; }
             if (!dMatches.length) { dMatches = findBestPoolMatches(surpriseMasterPool.dinner); surpriseUsedD = true; }
 
-            // Step 3: Global random fallback if absolutely zero partial matching constraints exist in either pool
             const pickFinalResult = (matchPool, fallbackSource) => {
                 return matchPool.length ? matchPool[Math.floor(Math.random() * matchPool.length)] : fallbackSource[Math.floor(Math.random() * fallbackSource.length)];
             };
@@ -566,7 +569,6 @@
             const finalL = pickFinalResult(lMatches, db.lunch);
             const finalD = pickFinalResult(dMatches, db.dinner);
 
-            // Output formatting array payload mapping labels contextually
             renderOutputDeck([
                 { time: `Breakfast ${surpriseUsedB && bMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalB, isSurprise: surpriseUsedB },
                 { time: `Lunch ${surpriseUsedL && lMatches.length ? '(Surprise Match)' : '(Fridge Match)'}`, name: finalL, isSurprise: surpriseUsedL },
@@ -618,20 +620,20 @@
             }
 
             cardState.name = newMealName;
-            const textElement = document.getElementById覆(`suggestion-name-text-${index}`);
             const textEl = document.getElementById(`suggestion-name-text-${index}`);
             if (textEl) textEl.innerText = newMealName;
         };
 
         window.enableInlineCardEditing = function(index) {
             const detailsBox = document.getElementById(`suggestion-details-${index}`);
-            const textElement = document.getElementById(`suggestion-name-text-${index}`);
+            const textElement = document.getElementById覆(`suggestion-name-text-${index}`);
+            const textEl = document.getElementById(`suggestion-name-text-${index}`);
             if (document.getElementById(`inline-input-field-${index}`)) return;
 
-            const originalValue = textElement.innerText;
+            const originalValue = textEl.innerText;
             const categoryType = currentSuggestionsState[index].time.split(' ')[0].toLowerCase(); 
 
-            textElement.style.display = "none";
+            textEl.style.display = "none";
             
             const editableStructure = `
                 <div id="inline-edit-wrap-${index}" onclick="event.stopPropagation();" style="width:100%; display:flex; flex-direction:column;">
@@ -840,3 +842,5 @@
     </script>
 </body>
 </html>
+
+```
