@@ -3,38 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Meal Sync</title>
+    <title>Meal Sync Pro</title>
     <meta name="theme-color" content="#4285F4">
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk1lYWwgU3luYyIsICJzaG9ydF9uYW1lIjogIk1lYWxTeW5jIiwgInN0YXJ0X3VybCI6ICIuIiwgImRpc3BsYXkiOiAic3RhbmRadW5lIiwgImJhY2tncm91bmRfY29sb3IiOiAiI2YwZjJmNSIsICJ0aGVtZV9jb2xvciI6ICIjNDI4NUY0IiwgImljb25zIjpbXX0=">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk1lYWwgU3luYyIsICJzaG9ydF9uYW1lIjogIk1lYWxTeW5jIiwgInN0YXJ0X3VybCI6ICIuIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmMGYyZjUiLCAidGhlbWVfY29sb3IiOiAiIzQyODVGNCIsICJpY29ucyI6W119">
     
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
     <style>
         body { font-family: system-ui, -apple-system, Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .app-container { max-width: 480px; width: 100%; }
-        h1 { color: #1a73e8; text-align: center; margin-bottom: 30px; }
+        h1 { color: #1a73e8; text-align: center; margin-bottom: 25px; font-size: 1.8rem; }
         .upload-card { background: #e3f2fd; padding: 24px; border-radius: 16px; border: 2px dashed #90caf9; text-align: center; margin-bottom: 20px; }
         .custom-file-input { display: none; }
-        .custom-file-label { background-color: #1976d2; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        #uploadStatus { margin-top: 15px; font-weight: bold; color: #1565c0; font-size: 14px; }
+        .custom-file-label { background-color: #1976d2; color: white; padding: 14px 24px; border-radius: 8px; cursor: pointer; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-weight: 500; }
+        #uploadStatus { margin-top: 15px; font-weight: bold; color: #1565c0; font-size: 14px; white-space: pre-line; }
         .gen-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-        #generateBtn { background-color: #34a853; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; }
+        #generateBtn { background-color: #34a853; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
         .suggestion-list { margin-top: 20px; text-align: left; border-top: 1px solid #ddd; padding-top: 20px; }
         .meal-suggestion { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
         .meal-time { font-weight: bold; color: #4285F4; }
-        .meal-name { color: #333; }
+        .meal-name { color: #333; font-weight: 500; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <h1>Meal Sync PWA</h1>
+        <h1>Meal Sync Pro</h1>
 
         <div class="upload-card">
-            <h2>1. Upload Screenshots</h2>
-            <p>Upload a screenshot containing text lists of your meals.</p>
-            <input type="file" id="fileInput" class="custom-file-input" accept="image/*">
-            <label for="fileInput" class="custom-file-label">Select Screenshot</label>
+            <h2>1. Import Meal Source</h2>
+            <p>Upload screenshots, take camera photos, or select Word (.docx) and PDF documents.</p>
+            
+            <input type="file" id="fileInput" class="custom-file-input" accept="image/*,.pdf,.docx" capture="environment">
+            <label for="fileInput" class="custom-file-label">Scan or Upload File</label>
+            
             <div id="uploadStatus"></div>
         </div>
 
@@ -45,63 +49,111 @@
     </div>
 
     <script>
-        const DB_KEY = 'realSyncedMealData';
-        
-        // Solid defaults to fall back on
+        // Configure PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const DB_KEY = 'omniSyncedMealData';
         let mealDatabase = JSON.parse(localStorage.getItem(DB_KEY)) || {
             breakfast: ["Oatmeal", "Poha", "Idli"],
-            lunch: ["Roti and Sabzi", "Rice and Dal", "Salad Salad"],
+            lunch: ["Roti and Sabzi", "Rice and Dal", "Salad"],
             dinner: ["Khichdi", "Paneer Wrap", "Soup"]
         };
 
         const fileInput = document.getElementById('fileInput');
         const status = document.getElementById('uploadStatus');
 
-        // --- Real OCR Text Extraction ---
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            status.innerText = "Reading screenshot... (This takes a few seconds)";
+            const fileName = file.name.toLowerCase();
             status.style.color = "#1565c0";
 
-            // Initialize Tesseract OCR
-            Tesseract.recognize(file, 'eng', { logger: m => console.log(m) })
-                .then(({ data: { text } }) => {
-                    processExtractedText(text);
-                })
-                .catch(err => {
-                    console.error(err);
-                    status.innerText = "Error scanning image. Try another screenshot.";
-                    status.style.color = "#c62828";
-                });
+            // Router: Determine file format and processing pipeline
+            if (file.type.match('image.*')) {
+                status.innerText = "Processing image/camera frame via OCR...";
+                processImageOCR(file);
+            } else if (fileName.endsWith('.pdf')) {
+                status.innerText = "Reading text layers from PDF...";
+                processPDF(file);
+            } else if (fileName.endsWith('.docx')) {
+                status.innerText = "Extracting formatting layers from Word Document...";
+                processDocx(file);
+            } else {
+                status.innerText = "Unsupported file format.";
+                status.style.color = "#c62828";
+            }
         });
 
+        // Pipeline A: OCR Processing Engine
+        function processImageOCR(file) {
+            Tesseract.recognize(file, 'eng')
+                .then(({ data: { text } }) => { processExtractedText(text); })
+                .catch(err => { handleProcessError("OCR Failed"); });
+        }
+
+        // Pipeline B: Native Digital PDF Engine
+        function processPDF(file) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                    let totalSections = pdf.numPages;
+                    let countPromises = [];
+                    
+                    for (let i = 1; i <= totalSections; i++) {
+                        countPromises.push(pdf.getPage(i).then(page => {
+                            return page.getTextContent().then(textContent => {
+                                return textContent.items.map(item => item.str).join(' ');
+                            });
+                        }));
+                    }
+                    
+                    Promise.all(countPromises).then(pageTexts => {
+                        processExtractedText(pageTexts.join('\n'));
+                    });
+                }).catch(err => { handleProcessError("PDF Read Error"); });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Pipeline C: XML Native Word Engine
+        function processDocx(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                    .then(function(result) {
+                        processExtractedText(result.value);
+                    })
+                    .catch(function(err) { handleProcessError("Word Read Error"); });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Shared Logic: Standard Formatting, Deduplication and Database Assignment
         function processExtractedText(rawText) {
-            // Split the raw image text into individual lines
             const lines = rawText.split('\n')
                 .map(line => line.trim())
-                .filter(line => line.length > 3); // Ignore empty or stray character lines
+                .filter(line => line.length > 2);
 
             if (lines.length === 0) {
-                status.innerText = "Couldn't read any distinct text. Make sure the screenshot is clear.";
+                status.innerText = "File processing complete, but no clear meal names were found inside.";
+                status.style.color = "#c62828";
                 return;
             }
 
-            // Parse lines into categories based on keywords found in the text
             lines.forEach(line => {
                 const lowerLine = line.toLowerCase();
                 
                 if (lowerLine.includes('breakfast') || lowerLine.includes('morning')) {
-                    // Strips out the category name if it's part of the line
-                    mealDatabase.breakfast.push(line.replace(/breakfast/i, '').replace(/[:\-]/g, '').trim());
+                    mealDatabase.breakfast.push(cleanLine(line, /breakfast/i));
                 } else if (lowerLine.includes('lunch') || lowerLine.includes('afternoon')) {
-                    mealDatabase.lunch.push(line.replace(/lunch/i, '').replace(/[:\-]/g, '').trim());
+                    mealDatabase.lunch.push(cleanLine(line, /lunch/i));
                 } else if (lowerLine.includes('dinner') || lowerLine.includes('night')) {
-                    mealDatabase.dinner.push(line.replace(/dinner/i, '').replace(/[:\-]/g, '').trim());
+                    mealDatabase.dinner.push(cleanLine(line, /dinner/i));
                 } else {
-                    // Default categorization strategy if no clear headers exist:
-                    // Distribute lines evenly to keep lists balanced
+                    // Balancing fallback logic strategy
                     const minLength = Math.min(mealDatabase.breakfast.length, mealDatabase.lunch.length, mealDatabase.dinner.length);
                     if (mealDatabase.breakfast.length === minLength) mealDatabase.breakfast.push(line);
                     else if (mealDatabase.lunch.length === minLength) mealDatabase.lunch.push(line);
@@ -109,13 +161,21 @@
                 }
             });
 
-            // Save updated pool back to local storage
             localStorage.setItem(DB_KEY, JSON.stringify(mealDatabase));
-            status.innerText = `Success! Processed lines and updated your pool.`;
+            status.innerText = `Successfully loaded text entry updates!\nTotal choices: Breakfast (${mealDatabase.breakfast.length}) | Lunch (${mealDatabase.lunch.length}) | Dinner (${mealDatabase.dinner.length})`;
             status.style.color = "#2e7d32";
         }
 
-        // --- Generator Logic ---
+        function cleanLine(text, regex) {
+            return text.replace(regex, '').replace(/[:\-–—]/g, '').trim();
+        }
+
+        function handleProcessError(msg) {
+            status.innerText = `${msg}. Ensure structural data or file format isn't corrupted.`;
+            status.style.color = "#c62828";
+        }
+
+        // Execution Generation Logic Core
         document.getElementById('generateBtn').addEventListener('click', function() {
             const suggestionDiv = document.getElementById('suggestions');
             suggestionDiv.innerHTML = ""; 
@@ -138,7 +198,7 @@
             });
         });
 
-        // Basic PWA Service Worker
+        // Production-Ready Service Worker Routine
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
