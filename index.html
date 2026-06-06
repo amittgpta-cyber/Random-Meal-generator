@@ -811,13 +811,20 @@ async function fetchSurpriseMealFromInternet() {
       els.uploadStatus.textContent = 'Text import synchronized.';
     }
 // This function returns true if the meal is safe (Veg/Egg), false if it has meat/fish
-function isVegetarianSafe(mealName) {
-    const meatKeywords = ['chicken', 'fish', 'meat', 'beef', 'pork', 'mutton', 'prawn', 'bacon', 'ham'];
-    const lowerName = mealName.toLowerCase();
+function isIndianVegetarianSafe(mealName) {
+    const mealLower = mealName.toLowerCase();
+
+    // 1. Define the Meat/Fish "Forbidden" list
+    const meatKeywords = ['chicken', 'fish', 'meat', 'beef', 'pork', 'mutton', 'prawn', 'bacon', 'ham', 'steak', 'tuna', 'salmon'];
     
-    // Check if any meat keyword is found in the meal name
-    const hasMeat = meatKeywords.some(keyword => lowerName.includes(keyword));
-    return !hasMeat; // Returns true only if NO meat is found
+    // 2. Define the "Indian" "Required" list (At least one must match)
+    const indianKeywords = ['masala', 'curry', 'biryani', 'dal', 'paneer', 'roti', 'paratha', 'chawal', 'aloo', 'sambhar', 'dosa', 'naan', 'tikka', 'kofta'];
+
+    const hasMeat = meatKeywords.some(k => mealLower.includes(k));
+    const isIndian = indianKeywords.some(k => mealLower.includes(k));
+
+    // Return TRUE only if it has NO meat AND matches at least one Indian keyword
+    return !hasMeat && isIndian;
 }
     function setFoodMode(mode) { state.foodMode = mode; }
 
@@ -832,24 +839,27 @@ function isVegetarianSafe(mealName) {
 // Replace your existing fetchSurpriseMealFromInternet with this:
 async function fetchSurpriseMealFromInternet() {
     try {
-        let mealName = "Surprise Dish";
+        let mealName = "Paneer Bhurji"; // Safe fallback
         let isSafe = false;
+        let attempts = 0;
 
-        // Keep fetching until we find a vegetarian meal
-        while (!isSafe) {
+        // Try up to 20 times to find a match before giving up
+        while (!isSafe && attempts < 20) {
             const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
             const data = await response.json();
             
             if (data.meals && data.meals[0]) {
-                mealName = data.meals[0].strMeal;
-                isSafe = isVegetarianSafe(mealName); // Use the bouncer!
-            } else {
-                break; // Stop if API fails
+                const fetchedName = data.meals[0].strMeal;
+                if (isIndianVegetarianSafe(fetchedName)) {
+                    mealName = fetchedName;
+                    isSafe = true;
+                }
             }
+            attempts++;
         }
         return mealName;
-    } catch (error) {
-        return "Paneer Bhurji"; // Safe fallback
+    } catch {
+        return "Paneer Bhurji"; 
     }
 }
 
