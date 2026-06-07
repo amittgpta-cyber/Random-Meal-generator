@@ -75,7 +75,6 @@
     .badge.success{background:color-mix(in oklab,var(--color-success) 18%, transparent);color:var(--color-success)}
     .badge.warning{background:color-mix(in oklab,var(--color-warning) 20%, transparent);color:var(--color-warning)}
     
-    /* Updated Layout for Action Buttons */
     .meal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);border-top:1px solid color-mix(in oklab,var(--color-text) 10%, transparent);padding:var(--space-4)}
     .full-width-btn{grid-column:1/-1;width:100%;justify-self:stretch;min-height:56px;padding:1.25rem 1.6rem;font-size:1.08rem}
     .card-action{min-height:54px;font-weight:700;text-transform:uppercase;font-size:var(--text-xs);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:999px;background:linear-gradient(180deg,color-mix(in oklab,var(--color-surface) 72%, white 8%),var(--color-surface-2));box-shadow:0 1px 0 rgba(255,255,255,.03) inset; cursor:pointer;}
@@ -258,6 +257,8 @@
   </div>
 
   <script>
+    const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbxiXi3U7I3PvhlxeuVI_-zC9rSZffZ-AUt_J8dQyGJDnKnVwQrjDVVtw_ra4t4MCxr4hQ/exec";
+
     (() => {
       const themeBtn = document.querySelector('[data-theme-toggle]');
       const root = document.documentElement;
@@ -284,12 +285,10 @@
     async function fetchSurpriseMealFromInternet() {
       try {
         if (!cachedGlobalVegMeals) {
-          // Fetch from global Vegetarian category
           const vegRes = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegetarian');
           const vegData = await vegRes.json();
           let meals = vegData.meals ? vegData.meals.map(m => m.strMeal) : [];
 
-          // Fetch from global Breakfast category (This is where most egg dishes live)
           const breakfastRes = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=Breakfast');
           const breakfastData = await breakfastRes.json();
           if (breakfastData.meals) {
@@ -297,16 +296,13 @@
           }
 
           if (meals.length > 0) {
-            // The "Meat Bouncer": Filter out any dish containing these non-veg keywords
             const meatKeywords = ['chicken', 'fish', 'meat', 'beef', 'pork', 'mutton', 'prawn', 'bacon', 'ham', 'steak', 'tuna', 'salmon', 'lamb', 'sausage', 'duck', 'turkey'];
-            
             cachedGlobalVegMeals = meals.filter(name => {
               const low = name.toLowerCase();
               return !meatKeywords.some(k => low.includes(k));
             });
           }
         }
-
         if (cachedGlobalVegMeals && cachedGlobalVegMeals.length > 0) {
           return cachedGlobalVegMeals[Math.floor(Math.random() * cachedGlobalVegMeals.length)];
         }
@@ -341,6 +337,12 @@
       excelView: document.getElementById('excelView'),
       excelGridTbody: document.getElementById('excelGridTbody')
     };
+
+    function syncMealToSheets(category, mealName) {
+      if (GOOGLE_SHEETS_API_URL === "PASTE_YOUR_WEB_APP_URL_HERE") return;
+      const url = `${GOOGLE_SHEETS_API_URL}?action=add&category=${category}&meal=${encodeURIComponent(mealName)}`;
+      fetch(url).catch(err => console.error('Failed to sync to sheets', err));
+    }
 
     const nonVegKeywords = ['chicken','fish','mutton','meat','prawn','prawns','goat','chicken curry','fish curry'];
 
@@ -391,7 +393,6 @@
       return source[Math.floor(Math.random() * source.length)];
     }
 
-    // Updated buildCard to support history tracking
     function buildCard(time, name, extra = {}) {
       return {
         time,
@@ -439,16 +440,13 @@
           <div class="meal-actions">
             <button class="card-action" type="button" data-action="prev" data-index="${index}" ${item.historyIndex > 0 && !item.isLocked ? '' : 'disabled'}>Previous</button>
             <button class="card-action" type="button" data-action="next" data-index="${index}" ${item.isLocked ? 'disabled' : ''}>Next</button>
-            
             <button class="card-action full-width-btn" type="button" data-action="lock" data-index="${index}">
               ${item.isLocked ? 'Confirmed (Click to Deselect)' : 'I\'ll eat it'}
             </button>
-
             <button class="card-action" type="button" data-action="google" data-index="${index}">Google recipe</button>
             <button class="card-action" type="button" data-action="youtube" data-index="${index}">YouTube recipe</button>
             <button class="card-action" type="button" data-action="nutrition" data-index="${index}">Nutrition info</button>
             <button class="card-action" type="button" data-action="internet" data-index="${index}">Alternatives</button>
-            
             <button class="card-action full-width-btn" type="button" data-action="save-db" data-index="${index}">Add to database</button>
           </div>`;
         els.suggestions.appendChild(article);
@@ -492,7 +490,6 @@
       ]);
     }
 
-    // Handles both Previous and Next behavior through history
     async function refreshSpecificCategoryCard(index, direction = 'next') {
       const card = state.currentSuggestions[index];
       if (!card || card.isLocked) return;
@@ -507,7 +504,6 @@
         return;
       }
       
-      // Moving Forward
       if (card.historyIndex < card.history.length - 1) {
         card.historyIndex++;
         card.name = card.history[card.historyIndex];
@@ -516,7 +512,6 @@
         return;
       }
 
-      // Generate completely new option
       const cleanKey = card.time.split(' ')[0].toLowerCase();
       const used = state.currentSuggestions.filter((_, i) => i !== index).map(item => item.name);
       
@@ -527,7 +522,6 @@
         newMealName = pickUniqueMeal(state.db[cleanKey], used);
       }
       
-      // Update history arrays seamlessly
       card.history.push(newMealName);
       card.historyIndex++;
       card.name = newMealName;
@@ -536,16 +530,12 @@
       renderOutputDeck(state.currentSuggestions);
     }
 
-    // Updated to Toggle Lock State
     function lockChoiceIntoExclusionMemory(index) {
       const card = state.currentSuggestions[index];
       if (!card) return;
-      
       if (card.isLocked) {
-        // Unlock it
         card.isLocked = false;
       } else {
-        // Lock it
         card.isLocked = true;
         logSingleMealSelection(card.name, card.time.split(' ')[0]);
         if (card.cookedRecently) {
@@ -570,7 +560,6 @@
       document.getElementById(`inline-input-${index}`).focus();
     }
 
-    // Updated to respect history changes
     function commitInlineCardUpdate(index, category, oldValue) {
       const input = document.getElementById(`inline-input-${index}`);
       if (!input) return;
@@ -582,8 +571,6 @@
       else state.db[category].push(newValue);
       
       dedupeDb();
-      
-      // Overwrite the current spot in history to match inline edit
       const card = state.currentSuggestions[index];
       card.name = newValue;
       card.history[card.historyIndex] = newValue;
@@ -636,11 +623,14 @@
         dedupeDb();
         refreshCounts();
         renderSpreadsheetModal();
+        
         state.currentSuggestions[index].name = normalized;
         state.currentSuggestions[index].sourceType = 'database';
         state.currentSuggestions[index].history[state.currentSuggestions[index].historyIndex] = normalized; 
         renderOutputDeck(state.currentSuggestions);
-        alert(normalized + ' added to ' + category + ' database.');
+        
+        syncMealToSheets(category, normalized);
+        alert(normalized + ' added to ' + category + ' database and Google Sheets.');
       } else {
         alert(normalized + ' is already present in the ' + category + ' database.');
       }
@@ -721,6 +711,7 @@
         const value = input.value.trim();
         if (value) {
           state.db[key].push(value);
+          syncMealToSheets(key, value); 
           input.value = '';
           added = true;
         }
@@ -874,7 +865,6 @@
     document.getElementById('fileUploadInput').addEventListener('change', handleFileRouting);
     document.getElementById('cameraCaptureInput').addEventListener('change', handleFileRouting);
 
-    // Event listener updated to handle Prev/Next instead of Change
     els.suggestions.addEventListener('click', async event => {
       const button = event.target.closest('[data-action]');
       if (button) {
@@ -928,11 +918,39 @@
       }
     });
 
+    // ----------------------------------------------------
+    // START UP LOGIC
+    // ----------------------------------------------------
     state.foodMode = 'veg';
-    dedupeDb();
-    refreshCounts();
-    renderOutputDeck([]);
-    renderSpreadsheetModal();
+    
+    async function loadFromGoogleSheets() {
+      if (GOOGLE_SHEETS_API_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
+        dedupeDb(); refreshCounts(); renderOutputDeck([]); renderSpreadsheetModal();
+        return;
+      }
+      
+      els.suggestions.innerHTML = '<div class="empty">Loading database from Google Drive...</div>';
+      try {
+        const res = await fetch(GOOGLE_SHEETS_API_URL);
+        const data = await res.json();
+        
+        if (data.breakfast || data.lunch || data.dinner) {
+          state.db.breakfast = data.breakfast || [];
+          state.db.lunch = data.lunch || [];
+          state.db.dinner = data.dinner || [];
+          dedupeDb();
+          refreshCounts();
+          renderSpreadsheetModal();
+          els.suggestions.innerHTML = '<div class="empty">Google Sheet loaded successfully! Use actions below to plan meals.</div>';
+        }
+      } catch (e) {
+        dedupeDb(); refreshCounts(); renderSpreadsheetModal();
+        els.suggestions.innerHTML = '<div class="empty">Loaded offline database (Google Sheet sync failed).</div>';
+      }
+    }
+    
+    loadFromGoogleSheets();
+
   </script>
 </body>
 </html>
