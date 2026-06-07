@@ -278,29 +278,40 @@
       dinner: ['Egg Biryani','Paneer Bhurji Chutney','Noodles Pasta','Methi Aalu Moong Daal Roti','Egg Curry Rice','Jeera Aalu Roti','Khichdi Dahi Achar','Daliya Veg','Sattu Paratha','Rajma Chawal','Chole Chawal','Paneer Sabji Roti','Lauki Sabji Roti']
     };
 
-    let cachedIndianMeals = null;
+    let cachedGlobalVegMeals = null;
 
     async function fetchSurpriseMealFromInternet() {
       try {
-        if (!cachedIndianMeals) {
-          const response = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?a=Indian');
-          const data = await response.json();
-          if (data.meals) {
-            const meatKeywords = ['chicken', 'fish', 'meat', 'beef', 'pork', 'mutton', 'prawn', 'bacon', 'ham', 'steak', 'tuna', 'salmon', 'lamb'];
-            cachedIndianMeals = data.meals
-              .map(m => m.strMeal)
-              .filter(name => {
-                const low = name.toLowerCase();
-                return !meatKeywords.some(k => low.includes(k));
-              });
+        if (!cachedGlobalVegMeals) {
+          // Fetch from global Vegetarian category
+          const vegRes = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegetarian');
+          const vegData = await vegRes.json();
+          let meals = vegData.meals ? vegData.meals.map(m => m.strMeal) : [];
+
+          // Fetch from global Breakfast category (This is where most egg dishes live)
+          const breakfastRes = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=Breakfast');
+          const breakfastData = await breakfastRes.json();
+          if (breakfastData.meals) {
+            meals = meals.concat(breakfastData.meals.map(m => m.strMeal));
+          }
+
+          if (meals.length > 0) {
+            // The "Meat Bouncer": Filter out any dish containing these non-veg keywords
+            const meatKeywords = ['chicken', 'fish', 'meat', 'beef', 'pork', 'mutton', 'prawn', 'bacon', 'ham', 'steak', 'tuna', 'salmon', 'lamb', 'sausage', 'duck', 'turkey'];
+            
+            cachedGlobalVegMeals = meals.filter(name => {
+              const low = name.toLowerCase();
+              return !meatKeywords.some(k => low.includes(k));
+            });
           }
         }
-        if (cachedIndianMeals && cachedIndianMeals.length > 0) {
-          return cachedIndianMeals[Math.floor(Math.random() * cachedIndianMeals.length)];
+
+        if (cachedGlobalVegMeals && cachedGlobalVegMeals.length > 0) {
+          return cachedGlobalVegMeals[Math.floor(Math.random() * cachedGlobalVegMeals.length)];
         }
-        return "Paneer Bhurji"; 
+        return "Classic Omelette"; 
       } catch {
-        return "Paneer Bhurji"; 
+        return "Classic Omelette"; 
       }
     }
 
