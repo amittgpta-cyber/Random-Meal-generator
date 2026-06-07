@@ -24,7 +24,7 @@
       --color-bg:#f7f6f2; --color-surface:#f9f8f5; --color-surface-2:#fbfbf9; --color-surface-offset:#f3f0ec; --color-border:#d4d1ca; --color-divider:#dcd9d5;
       --color-text:#28251d; --color-text-muted:#7a7974; --color-text-faint:#bab9b4; --color-text-inverse:#f9f8f4;
       --color-primary:#01696f; --color-primary-hover:#0c4e54; --color-secondary:#e8af34; --color-success:#437a22; --color-warning:#da7101; --color-error:#a12c7b;
-      --radius-sm:0.375rem; --radius-md:0.5rem; --radius-lg:0.75rem; --radius-xl:1rem; --radius-2xl:1.5rem; --radius-full:9999px;
+      --radius-btn: 0.75rem; --radius-sm:0.375rem; --radius-md:0.5rem; --radius-lg:0.75rem; --radius-xl:1rem; --radius-2xl:1.5rem;
       --shadow-sm:0 1px 2px oklch(0.2 0.01 80 / 0.06); --shadow-md:0 4px 12px oklch(0.2 0.01 80 / 0.08); --shadow-lg:0 12px 32px oklch(0.2 0.01 80 / 0.12);
       --font-body:'General Sans', Inter, sans-serif; --font-display:'Boska', Georgia, serif;
       --content: min(100% - 2rem, 70rem);
@@ -49,57 +49,65 @@
     h1{font-family:var(--font-display);font-size:var(--text-xl);font-weight:500;line-height:1}
     .subtle{color:var(--color-text-muted);font-size:var(--text-sm)}
     .header-actions{display:flex;gap:var(--space-2);align-items:center}
-    .icon-btn,.ghost-btn,.pill-btn,.primary-btn,.accent-btn,.success-btn,.danger-btn{min-height:56px;border-radius:var(--radius-full);transition:all .18s ease; display:flex; align-items:center; justify-content:center; gap:8px;}
+    
+    .icon-btn,.ghost-btn,.pill-btn,.primary-btn,.accent-btn,.success-btn,.danger-btn{min-height:56px;border-radius:var(--radius-btn);transition:all .18s ease; display:flex; align-items:center; justify-content:center; gap:8px;}
     .icon-btn{width:56px;border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);background:var(--color-surface)}
-    .pill-btn,.primary-btn,.accent-btn,.success-btn,.danger-btn,.ghost-btn{padding:0.85rem 1.4rem;font-size:var(--text-base);font-weight:600}
+    .primary-btn,.accent-btn,.success-btn,.danger-btn,.ghost-btn{padding:0.85rem 1.4rem;font-size:var(--text-base);font-weight:600; text-align: center;}
     .ghost-btn{background:var(--color-surface);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent)}
     .primary-btn{background:var(--color-primary);color:var(--color-text-inverse)}
     .accent-btn{background:var(--color-secondary);color:#1a1406}
     .success-btn{background:var(--color-success);color:#fff}
     .danger-btn{background:color-mix(in oklab,var(--color-error) 18%, var(--color-surface));color:var(--color-error);border:1px solid color-mix(in oklab,var(--color-error) 35%, transparent)}
+    
     .hero{display:grid;gap:var(--space-6);padding:var(--space-6);background:color-mix(in oklab,var(--color-surface) 88%, transparent);border:1px solid color-mix(in oklab,var(--color-text) 10%, transparent);border-radius:var(--radius-2xl);box-shadow:var(--shadow-md);margin-bottom:var(--space-8)}
     .hero-grid{display:grid;gap:var(--space-2)}
-    .hero h2{font-family:var(--font-display);font-size:var(--text-2xl);line-height:1.1;font-weight:500;}
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)}
-    .stat{padding:var(--space-4);background:var(--color-surface-2);border-radius:var(--radius-xl);border:1px solid color-mix(in oklab,var(--color-text) 8%, transparent)}
+    .stats{display:grid;grid-template-columns:repeat(3, 1fr);gap:var(--space-3)}
+    .stat{padding:var(--space-3);background:var(--color-surface-2);border-radius:var(--radius-xl);border:1px solid color-mix(in oklab,var(--color-text) 8%, transparent); text-align: center;}
     .stat strong{display:block;font-size:var(--text-lg)}
+    .stat .subtle{font-size:var(--text-xs); text-transform:uppercase; letter-spacing:0.05em;}
+    
     .section{margin-bottom:var(--space-8)}
-    .cards{display:grid;gap:var(--space-4)}
-    .meal-card{background:var(--color-surface);border:1px solid color-mix(in oklab,var(--color-text) 9%, transparent);border-radius:1.75rem;overflow:hidden;box-shadow:var(--shadow-sm); transition: border-color 0.2s ease;}
-    .meal-card.locked{border-color:#10b981;box-shadow:0 0 0 1px #10b981;}
-    .meal-main{padding:var(--space-6);display:grid;gap:var(--space-2)}
+    .cards{display:grid;gap:var(--space-6)}
+    .meal-card{background:var(--color-surface);border:1px solid color-mix(in oklab,var(--color-text) 9%, transparent);border-radius:1.75rem;overflow:hidden;box-shadow:var(--shadow-sm); transition: border-color 0.2s ease; display:flex; flex-direction:column;}
+    .meal-card.locked{border-color:#10b981;box-shadow:0 0 0 2px #10b981;}
+    .meal-main{padding:var(--space-5);display:grid;gap:var(--space-3)}
+    
+    .card-header-row{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--space-2);}
     .eyebrow{font-size:var(--text-sm);letter-spacing:.12em;text-transform:uppercase;color:var(--color-primary);font-weight:700}
-    .meal-title{font-size:var(--text-2xl);line-height:1.1; margin-bottom: 0.5rem;}
-    .badges{display:flex;gap:var(--space-2);flex-wrap:wrap; justify-content:space-between; align-items:flex-start;}
-    .badge-group {display:flex; gap:var(--space-2); flex-wrap:wrap;}
-    .badge{padding:.4rem .8rem;border-radius:var(--radius-full);font-size:var(--text-sm);font-weight:700;background:color-mix(in oklab,var(--color-primary) 16%, transparent);color:var(--color-primary)}
+    .badge{padding:.4rem .8rem;border-radius:var(--radius-btn);font-size:var(--text-xs);font-weight:700;background:color-mix(in oklab,var(--color-primary) 16%, transparent);color:var(--color-primary); white-space:nowrap;}
     .badge.success{background:color-mix(in oklab,var(--color-success) 18%, transparent);color:var(--color-success)}
     .badge.warning{background:color-mix(in oklab,var(--color-warning) 20%, transparent);color:var(--color-warning)}
-    .badge-btn {cursor: pointer; padding: 0.5rem 1rem; border-radius: var(--radius-full); font-weight: bold; background: var(--color-primary); color: white; border: none; font-size: var(--text-sm); display: flex; align-items: center; gap: 6px; transition: transform 0.1s;}
-    .badge-btn:active {transform: scale(0.96);}
     
-    .card-action{min-height:56px;font-weight:700;text-transform:uppercase;font-size:var(--text-sm);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:999px;background:linear-gradient(180deg,color-mix(in oklab,var(--color-surface) 72%, white 8%),var(--color-surface-2));box-shadow:0 1px 0 rgba(255,255,255,.03) inset; cursor:pointer; transition: all 0.2s;}
+    .meal-title{font-size:var(--text-2xl);line-height:1.1; font-family:var(--font-display); font-weight:500;}
+    
+    .nav-buttons-row {display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-top: var(--space-2);}
+    
+    .card-action{min-height:56px;font-weight:700;font-size:var(--text-base);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:var(--radius-btn);background:linear-gradient(180deg,color-mix(in oklab,var(--color-surface) 72%, white 8%),var(--color-surface-2));box-shadow:0 1px 0 rgba(255,255,255,.03) inset; cursor:pointer; transition: all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; padding: 0.5rem 1rem;}
     .card-action:disabled{opacity:0.4;cursor:not-allowed;}
     .card-action.locked { background: #10b981 !important; color: #fff !important; border: 1px solid #10b981 !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important; }
+    
+    .main-actions-row {display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-3); padding:0 var(--space-5) var(--space-5);}
+    .explore-area {display:none; grid-template-columns: 1fr 1fr; gap: var(--space-3); padding: 0 var(--space-5) var(--space-5); border-top: 1px solid color-mix(in oklab,var(--color-text) 8%, transparent); margin-top: -var(--space-2); padding-top: var(--space-4);}
     
     .empty{padding:var(--space-8);text-align:left;background:var(--color-surface);border-radius:var(--radius-2xl);border:1px dashed color-mix(in oklab,var(--color-text) 16%, transparent);color:var(--color-text-muted); font-size: var(--text-lg);}
     .empty h3 {color: var(--color-text); margin-bottom: 1rem; font-family: var(--font-display); font-size: var(--text-2xl); line-height:1.2;}
     
     .bottom-console{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,70rem);padding:var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--color-bg) 70%,color-mix(in oklab,var(--color-bg) 82%, transparent));backdrop-filter:blur(10px);z-index:20}
-    .console-grid{display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-3)}
+    .console-grid{display:grid; grid-template-columns: repeat(3, 1fr); gap:var(--space-3)}
     .console-grid button{width:100%;box-shadow:var(--shadow-md); justify-content:center;}
-    .modal{position:fixed;inset:0;background:color-mix(in oklab,#000 55%, transparent);display:none;align-items:center;justify-content:center;padding:var(--space-4);z-index:50}
+    
+    .modal{position:fixed;inset:0;background:color-mix(in oklab,#000 65%, transparent);display:none;align-items:center;justify-content:center;padding:var(--space-4);z-index:50; backdrop-filter:blur(4px);}
     .modal.open{display:flex}
     .dialog{width:min(100%,64rem);max-height:min(90dvh,56rem);overflow:hidden;background:var(--color-surface);border:1px solid color-mix(in oklab,var(--color-text) 10%, transparent);border-radius:2rem;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
     .dialog.small{width:min(100%,36rem);max-height:min(80dvh,34rem)}
-    .dialog-head{padding:var(--space-5) var(--space-5) var(--space-4); display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);border-bottom:1px solid var(--color-divider);flex-shrink:0}
-    .dialog-head h4{font-size:var(--text-xl);font-family:var(--font-display);font-weight:500}
+    .dialog-head{padding:var(--space-5); display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);border-bottom:1px solid var(--color-divider);flex-shrink:0; background:var(--color-surface);}
+    .dialog-head h4{font-size:var(--text-xl);font-family:var(--font-display);font-weight:500; display:flex; align-items:center; gap:8px;}
     
-    .dialog-content-scroll { overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; }
+    .dialog-content-scroll { overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; padding-bottom:var(--space-8);}
     
     .dialog-tools{padding:var(--space-4) var(--space-5);display:grid;gap:var(--space-4);border-bottom:1px solid var(--color-divider)}
     .import-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
-    .import-label{display:grid;place-items:center;gap:var(--space-1);padding:var(--space-3);text-align:center;background:var(--color-surface-2);border:1px dashed color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:var(--radius-xl);min-height:auto;cursor:pointer;font-size:var(--text-sm)}
+    .import-label{display:grid;place-items:center;gap:var(--space-1);padding:var(--space-3);text-align:center;background:var(--color-surface-2);border:1px dashed color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:var(--radius-btn);min-height:auto;cursor:pointer;font-size:var(--text-sm)}
     .hidden{display:none!important}
     .toolbar-row{display:flex;gap:var(--space-3);flex-wrap:wrap}
     .status{font-size:var(--text-sm);color:var(--color-primary);min-height:1.5em;white-space:pre-wrap}
@@ -107,22 +115,28 @@
     .panel{padding:var(--space-5);background:var(--color-surface-2);border-radius:var(--radius-2xl);border:1px solid color-mix(in oklab,var(--color-text) 8%, transparent)}
     .panel h5{font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.08em;color:var(--color-primary);margin-bottom:var(--space-4)}
     .stack{display:grid;gap:var(--space-3)}
-    .input, .grid-input{width:100%;padding:.9rem 1rem;border-radius:var(--radius-xl);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);background:var(--color-bg); font-size: var(--text-base);}
+    
+    .review-queue-list {list-style:none; padding:0; margin:0; display:grid; gap:8px;}
+    .review-queue-item {display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:var(--radius-btn); font-size:var(--text-sm);}
+    .review-queue-remove {color:var(--color-error); background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.2rem; padding:0 8px;}
+    
+    .input, .grid-input{width:100%;padding:.9rem 1rem;border-radius:var(--radius-btn);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);background:var(--color-bg); font-size: var(--text-base);}
     .input:focus,.grid-input:focus{outline:2px solid color-mix(in oklab,var(--color-primary) 35%, transparent);outline-offset:2px}
     .data-section{display:grid;gap:var(--space-3)}
-    .data-row{display:flex;justify-content:space-between;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);border:1px solid color-mix(in oklab,var(--color-text) 8%, transparent);border-radius:var(--radius-xl);background:color-mix(in oklab,var(--color-bg) 55%, var(--color-surface)); font-size: var(--text-base);}
+    .data-row{display:flex;justify-content:space-between;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);border:1px solid color-mix(in oklab,var(--color-text) 8%, transparent);border-radius:var(--radius-btn);background:color-mix(in oklab,var(--color-bg) 55%, var(--color-surface)); font-size: var(--text-base);}
     .data-row span{word-break:break-word}
     .table-wrap{overflow:auto;border:1px solid color-mix(in oklab,var(--color-text) 10%, transparent);border-radius:var(--radius-xl)}
     table{width:100%;border-collapse:collapse;min-width:42rem}
     th,td{border-bottom:1px solid color-mix(in oklab,var(--color-text) 8%, transparent);padding:.5rem;vertical-align:top}
     th{position:sticky;top:0;background:var(--color-surface-offset);text-align:left;font-size:var(--text-sm)}
     .inline-edit{display:grid;gap:var(--space-3);margin-top:var(--space-3)}
+    
     @media (max-width: 700px){
       .shell{padding-bottom:calc(22rem + env(safe-area-inset-bottom))}
-      .stats{grid-template-columns:1fr}
       .import-grid{grid-template-columns:1fr}
       .toolbar-row{display:grid;grid-template-columns:1fr 1fr}
       .console-grid{grid-template-columns:1fr;}
+      .explore-area {grid-template-columns: 1fr;}
       table{min-width:34rem}
     }
     @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto;transition:none!important}}
@@ -183,12 +197,9 @@
     <div class="console-grid">
       <button id="fridgeBtn" class="success-btn" type="button">Fridge Match</button>
       <button id="surpriseBtn" class="accent-btn" type="button">Chef Special!</button>
-      <button id="submitApprovalBtn" class="accent-btn" type="button" style="background: var(--color-warning); color: #fff;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-        Submit Queue
-      </button>
       <button id="generateBtn" class="primary-btn" type="button">
-        <span style="font-size:1.5rem; line-height:1;">🎲🎲</span> Plan Meals
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><circle cx="8" cy="8" r="2"></circle><circle cx="16" cy="16" r="2"></circle></svg> 
+        Plan Meals
       </button>
     </div>
   </div>
@@ -196,10 +207,10 @@
   <div id="dataModal" class="modal" aria-hidden="true">
     <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dataTitle">
       <div class="dialog-head">
-        <div>
-          <h4 id="dataTitle">CookBook</h4>
-          <p class="subtle">Import, review, edit, and export your breakfast, lunch, and dinner pools.</p>
-        </div>
+        <h4>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          CookBook
+        </h4>
         <button class="icon-btn" id="closeDataBtn" type="button" aria-label="Close meal database">✕</button>
       </div>
       
@@ -218,6 +229,18 @@
           </div>
         </div>
         <div class="dialog-body">
+          
+          <section class="panel" id="reviewQueuePanel" style="display:none; border-color:var(--color-warning);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4); flex-wrap:wrap; gap:12px;">
+              <h5 style="margin:0; color:var(--color-warning);">Pending Additions Queue</h5>
+              <button id="submitApprovalBtn" class="primary-btn" type="button" style="background: var(--color-warning); color: #fff;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                Send Approval Email
+              </button>
+            </div>
+            <ul class="review-queue-list" id="reviewQueueList"></ul>
+          </section>
+
           <section id="dashboardView" class="stack">
             <div class="panel">
               <h5>Add custom entries</h5>
@@ -225,11 +248,12 @@
                 <input class="input" id="unified-breakfast" placeholder="Breakfast item" />
                 <input class="input" id="unified-lunch" placeholder="Lunch item" />
                 <input class="input" id="unified-dinner" placeholder="Dinner item" />
-                <button id="saveUnifiedBtn" class="primary-btn" type="button">Save entries</button>
+                <button id="saveUnifiedBtn" class="primary-btn" type="button">Save entries to Queue</button>
               </div>
             </div>
             <div id="tableSections" class="stack"></div>
           </section>
+
           <section id="excelView" class="stack hidden">
             <div class="panel">
               <h5>Spreadsheet matrix editor</h5>
@@ -256,8 +280,8 @@
     <section class="dialog small" role="dialog" aria-modal="true" aria-labelledby="fridgeTitle">
       <div class="dialog-head">
         <div>
-          <h4 id="fridgeTitle">Fridge match</h4>
-          <p class="subtle">The app checks your database first. If it finds nothing, it opens unlimited internet searches.</p>
+          <h4 id="fridgeTitle">Fridge Match</h4>
+          <p class="subtle">Checks database first. If empty, opens internet search.</p>
         </div>
         <button class="icon-btn" id="closeFridgeBtn" type="button" aria-label="Close fridge dialog">✕</button>
       </div>
@@ -353,14 +377,44 @@
       tableSections: document.getElementById('tableSections'),
       dashboardView: document.getElementById('dashboardView'),
       excelView: document.getElementById('excelView'),
-      excelGridTbody: document.getElementById('excelGridTbody')
+      excelGridTbody: document.getElementById('excelGridTbody'),
+      reviewQueuePanel: document.getElementById('reviewQueuePanel'),
+      reviewQueueList: document.getElementById('reviewQueueList')
     };
 
     let pendingApprovals = [];
 
+    function renderReviewQueue() {
+      els.reviewQueueList.innerHTML = '';
+      if (pendingApprovals.length === 0) {
+        els.reviewQueuePanel.style.display = 'none';
+        return;
+      }
+      els.reviewQueuePanel.style.display = 'block';
+      pendingApprovals.forEach((item, idx) => {
+        const li = document.createElement('li');
+        li.className = 'review-queue-item';
+        li.innerHTML = `
+          <span><strong>${item.category.toUpperCase()}:</strong> ${escapeHtml(item.meal)}</span>
+          <button class="review-queue-remove" data-remove-queue="${idx}" title="Remove from queue">✕</button>
+        `;
+        els.reviewQueueList.appendChild(li);
+      });
+    }
+
+    document.addEventListener('click', e => {
+      const rmBtn = e.target.closest('[data-remove-queue]');
+      if (rmBtn) {
+        const idx = Number(rmBtn.dataset.removeQueue);
+        pendingApprovals.splice(idx, 1);
+        renderReviewQueue();
+      }
+    });
+
     function queueMealForApproval(category, mealName) {
       pendingApprovals.push({ category, meal: mealName });
-      alert(`${mealName} queued. Click "Submit Queue" at the bottom when you are done.`);
+      renderReviewQueue();
+      alert(`${mealName} queued. Open CookBook to review and submit.`);
     }
 
     async function submitQueueForApproval() {
@@ -369,7 +423,7 @@
       
       const btn = document.getElementById('submitApprovalBtn');
       const originalText = btn.innerHTML;
-      btn.textContent = "Sending...";
+      btn.textContent = "Sending Email...";
       
       try {
         await fetch(GOOGLE_SHEETS_API_URL, {
@@ -377,19 +431,14 @@
           body: JSON.stringify({ action: 'request_approval', meals: pendingApprovals })
         });
         pendingApprovals = [];
+        renderReviewQueue();
         btn.innerHTML = originalText;
-        alert('Approval email sent to your Gmail!');
+        alert('Approval email sent successfully!');
       } catch (err) {
         console.error('Failed to submit', err);
         btn.innerHTML = originalText;
         alert('Failed to send. Check console.');
       }
-    }
-
-    function deleteMealFromSheets(category, mealName) {
-      if (GOOGLE_SHEETS_API_URL === "PASTE_YOUR_WEB_APP_URL_HERE") return;
-      const url = `${GOOGLE_SHEETS_API_URL}?action=delete&category=${category}&meal=${encodeURIComponent(mealName)}`;
-      fetch(url).catch(err => console.error('Failed to delete from sheets', err));
     }
 
     function filterByMode(arr) {
@@ -469,53 +518,58 @@
         article.className = 'meal-card' + (item.isLocked ? ' locked' : '');
         article.innerHTML = `
           <div class="meal-main">
-            <p class="eyebrow">${item.time}</p>
-            <div class="badges">
-              <div class="badge-group">
-                <span class="badge ${isNonVeg ? 'warning' : 'success'}">${isNonVeg ? 'Non-Veg' : 'Veg / Egg'}</span>
-              </div>
-              <button class="badge-btn" type="button" data-action="save-db" data-index="${index}" title="Add to Cookbook">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Add
+            <div class="card-header-row">
+              <span class="eyebrow">${item.time}</span>
+              <span class="badge ${isNonVeg ? 'warning' : 'success'}">${isNonVeg ? 'Non-Veg' : 'Veg / Egg'}</span>
+            </div>
+            
+            <div class="meal-title" id="meal-title-${index}">${escapeHtml(item.name)}</div>
+            
+            ${item.cookedRecently ? '<div style="margin-bottom:0.5rem;"><span class="badge warning">Cooked in last 7 days</span></div>' : ''}
+            
+            <div class="nav-buttons-row">
+              <button class="card-action" type="button" data-action="prev" data-index="${index}" ${item.historyIndex > 0 && !item.isLocked ? '' : 'disabled'}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                Prev
+              </button>
+              <button class="card-action" type="button" data-action="next" data-index="${index}" ${item.isLocked ? 'disabled' : ''}>
+                Next
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
               </button>
             </div>
-            <div class="meal-title" id="meal-title-${index}" style="margin-top:1rem;">${escapeHtml(item.name)}</div>
+            
             <div id="inline-slot-${index}"></div>
           </div>
           
-          <div class="meal-actions" style="grid-template-columns: 4rem 1fr 4rem; padding: 0 var(--space-4) var(--space-4); border-top: none;">
-            <button class="card-action" style="padding:0; display:flex; align-items:center; justify-content:center;" type="button" data-action="prev" data-index="${index}" ${item.historyIndex > 0 && !item.isLocked ? '' : 'disabled'}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
-            </button>
-            
-            <button class="card-action ${item.isLocked ? 'locked' : ''}" style="font-size: 1.1rem; border-width: 2px;" type="button" data-action="lock" data-index="${index}">
+          <div class="main-actions-row">
+            <button class="card-action ${item.isLocked ? 'locked' : ''}" style="border-width: 2px;" type="button" data-action="lock" data-index="${index}">
               ${item.isLocked ? '✓ Selected' : 'Order Up!'}
             </button>
-            
-            <button class="card-action" style="padding:0; display:flex; align-items:center; justify-content:center;" type="button" data-action="next" data-index="${index}" ${item.isLocked ? 'disabled' : ''}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+            <button class="card-action" type="button" data-action="toggle-explore" data-index="${index}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> 
+              Explore
+            </button>
+            <button class="card-action" style="grid-column: 1 / -1; background: var(--color-surface-2);" type="button" data-action="save-db" data-index="${index}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add to Cookbook
             </button>
           </div>
 
-          <div class="meal-actions" style="grid-template-columns: 1fr 1fr; padding: 0 var(--space-4) var(--space-4); border-top: none;">
-            <button class="card-action" style="background:var(--color-surface); display:flex; align-items:center; justify-content:center; gap:8px;" type="button" data-action="toggle-explore" data-index="${index}">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> 
-              🔗 Explore
+          <div id="explore-${index}" class="explore-area">
+            <button class="card-action" data-action="google" data-index="${index}">
+              <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 24c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 21.53 7.7 24 12 24z"/><path fill="#FBBC05" d="M5.84 15.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V8.06H2.18C1.43 9.55 1 11.22 1 13s.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 4.84c1.61 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.63 14.97 0 12 0 7.7 0 3.99 2.47 2.18 6.06l3.66 2.84c.87-2.6 3.3-4.06 6.16-4.06z"/></svg>
+              Google
             </button>
-            <button class="card-action" style="background:var(--color-surface); display:flex; align-items:center; justify-content:center; gap:8px;" type="button" data-action="internet" data-index="${index}">
+            <button class="card-action" data-action="youtube" data-index="${index}">
+              <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#FF0000" d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+              YouTube
+            </button>
+            <button class="card-action" style="color:#10b981;" data-action="nutrition" data-index="${index}">
+              <span style="font-size:1.2rem;">💪</span> Health
+            </button>
+            <button class="card-action" data-action="internet" data-index="${index}">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               Similar
-            </button>
-          </div>
-
-          <div id="explore-${index}" style="display:none; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); padding: 0 var(--space-4) var(--space-4);">
-            <button class="card-action" style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; font-size:0.8rem; background:var(--color-surface);" data-action="google" data-index="${index}">
-              <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 24c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 21.53 7.7 24 12 24z"/><path fill="#FBBC05" d="M5.84 15.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V8.06H2.18C1.43 9.55 1 11.22 1 13s.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 4.84c1.61 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.63 14.97 0 12 0 7.7 0 3.99 2.47 2.18 6.06l3.66 2.84c.87-2.6 3.3-4.06 6.16-4.06z"/></svg>
-            </button>
-            <button class="card-action" style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; font-size:0.8rem; background:var(--color-surface);" data-action="youtube" data-index="${index}">
-              <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#FF0000" d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-            </button>
-            <button class="card-action" style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; font-size:0.9rem; font-weight:900; color:#10b981; background:var(--color-surface);" data-action="nutrition" data-index="${index}">
-              💪 Health
             </button>
           </div>
         `;
@@ -686,15 +740,6 @@
         return;
       }
       if (!state.db[category].map(v => v.toLowerCase()).includes(normalized.toLowerCase())) {
-        state.db[category].push(normalized);
-        dedupeDb();
-        refreshCounts();
-        renderSpreadsheetModal();
-        
-        state.currentSuggestions[index].name = normalized;
-        state.currentSuggestions[index].history[state.currentSuggestions[index].historyIndex] = normalized; 
-        renderOutputDeck(state.currentSuggestions);
-        
         queueMealForApproval(category, normalized);
       } else {
         alert(normalized + ' is already present in the ' + category + ' database.');
@@ -724,13 +769,13 @@
         if (!state.db[category].length) {
           const empty = document.createElement('p');
           empty.className = 'subtle';
-          empty.textContent = 'No meals added in this category yet.';
+          empty.textContent = 'No meals found in Google Sheet.';
           section.appendChild(empty);
         } else {
-          state.db[category].forEach((item, index) => {
+          state.db[category].forEach((item) => {
             const row = document.createElement('div');
             row.className = 'data-row';
-            row.innerHTML = `<span>${escapeHtml(item)}</span><button class="danger-btn" style="min-height:44px; padding:0.5rem 1rem;" type="button" data-delete="${category}:${index}">Delete</button>`;
+            row.innerHTML = `<span>${escapeHtml(item)}</span>`;
             section.appendChild(row);
           });
         }
@@ -765,7 +810,7 @@
       dedupeDb();
       refreshCounts();
       renderSpreadsheetModal();
-      alert('Spreadsheet edits saved.');
+      alert('Spreadsheet edits saved locally.');
       if (state.excelViewActive) switchExcelView();
     }
 
@@ -775,17 +820,12 @@
         const input = document.getElementById(`unified-${key}`);
         const value = input.value.trim();
         if (value) {
-          state.db[key].push(value);
           queueMealForApproval(key, value); 
           input.value = '';
           added = true;
         }
       });
       if (!added) { alert('Add an item in at least one box before saving.'); return; }
-      dedupeDb();
-      refreshCounts();
-      renderSpreadsheetModal();
-      els.uploadStatus.textContent = 'Meal inputs appended successfully.';
     }
 
     function exportExcel() {
@@ -867,7 +907,7 @@
       dedupeDb();
       refreshCounts();
       renderSpreadsheetModal();
-      els.uploadStatus.textContent = 'Excel sheet merged successfully.';
+      els.uploadStatus.textContent = 'Excel sheet merged successfully locally.';
     }
 
     function parseTextPool(text) {
@@ -893,7 +933,7 @@
       dedupeDb();
       refreshCounts();
       renderSpreadsheetModal();
-      els.uploadStatus.textContent = 'Text import synchronized.';
+      els.uploadStatus.textContent = 'Text import synchronized locally.';
     }
 
     function setFoodMode(mode) { state.foodMode = mode; }
@@ -906,16 +946,16 @@
     document.getElementById('submitApprovalBtn').addEventListener('click', submitQueueForApproval);
     
     document.getElementById('surpriseBtn').addEventListener('click', async function() {
-      els.suggestions.innerHTML = '<div class="empty">Fetching global inspirations...</div>';
+      els.suggestions.innerHTML = '<div class="empty"><h3>Fetching global inspirations...</h3></div>';
       const [b, l, d] = await Promise.all([
         fetchSurpriseMealFromInternet(),
         fetchSurpriseMealFromInternet(),
         fetchSurpriseMealFromInternet()
       ]);
       renderOutputDeck([
-        buildCard("Breakfast (Internet)", b),
-        buildCard("Lunch (Internet)", l),
-        buildCard("Dinner (Internet)", d)
+        buildCard("Breakfast", b),
+        buildCard("Lunch", l),
+        buildCard("Dinner", d)
       ]);
     });
 
@@ -971,19 +1011,6 @@
       if (index >= 0) enableInlineCardEditing(index);
     });
 
-    els.tableSections.addEventListener('click', event => {
-      const button = event.target.closest('[data-delete]');
-      if (!button) return;
-      const [category, rawIndex] = button.dataset.delete.split(':');
-      
-      const mealToDelete = state.db[category][Number(rawIndex)];
-      state.db[category].splice(Number(rawIndex), 1);
-      refreshCounts();
-      renderSpreadsheetModal();
-      
-      deleteMealFromSheets(category, mealToDelete);
-    });
-
     [els.dataModal, els.fridgeModal].forEach(modal => modal.addEventListener('click', event => { if (event.target === modal) closeModal(modal); }));
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
@@ -1000,7 +1027,7 @@
         return;
       }
       
-      els.suggestions.innerHTML = '<div class="empty">Loading database from Google Drive...</div>';
+      els.suggestions.innerHTML = '<div class="empty"><h3>Loading database from Google Drive...</h3></div>';
       try {
         const res = await fetch(GOOGLE_SHEETS_API_URL);
         const data = await res.json();
@@ -1020,7 +1047,7 @@
         }
       } catch (e) {
         dedupeDb(); refreshCounts(); renderSpreadsheetModal();
-        els.suggestions.innerHTML = '<div class="empty">Loaded offline database (Google Sheet sync failed).</div>';
+        els.suggestions.innerHTML = '<div class="empty"><h3>Loaded offline database (Google Sheet sync failed).</h3></div>';
       }
     }
     
