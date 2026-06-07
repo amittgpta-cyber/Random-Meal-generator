@@ -74,12 +74,14 @@
     .badge{padding:.35rem .65rem;border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:700;background:color-mix(in oklab,var(--color-primary) 16%, transparent);color:var(--color-primary)}
     .badge.success{background:color-mix(in oklab,var(--color-success) 18%, transparent);color:var(--color-success)}
     .badge.warning{background:color-mix(in oklab,var(--color-warning) 20%, transparent);color:var(--color-warning)}
-    .meal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid color-mix(in oklab,var(--color-text) 10%, transparent);border-bottom:1px solid color-mix(in oklab,var(--color-text) 18%, transparent);overflow:hidden;padding:.15rem}
-    .add-db-btn{grid-column:1/-1;width:100%;justify-self:stretch;min-height:56px;padding:1.25rem 1.6rem;font-size:1.08rem}
-    .card-action{min-height:54px;font-weight:700;text-transform:uppercase;font-size:var(--text-xs);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:999px;background:linear-gradient(180deg,color-mix(in oklab,var(--color-surface) 72%, white 8%),var(--color-surface-2));box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
-    .card-action:nth-child(even){border-left:1px solid color-mix(in oklab,var(--color-text) 8%, transparent)}
+    
+    /* Updated Layout for Action Buttons */
+    .meal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);border-top:1px solid color-mix(in oklab,var(--color-text) 10%, transparent);padding:var(--space-4)}
+    .full-width-btn{grid-column:1/-1;width:100%;justify-self:stretch;min-height:56px;padding:1.25rem 1.6rem;font-size:1.08rem}
+    .card-action{min-height:54px;font-weight:700;text-transform:uppercase;font-size:var(--text-xs);border:1px solid color-mix(in oklab,var(--color-text) 12%, transparent);border-radius:999px;background:linear-gradient(180deg,color-mix(in oklab,var(--color-surface) 72%, white 8%),var(--color-surface-2));box-shadow:0 1px 0 rgba(255,255,255,.03) inset; cursor:pointer;}
+    .card-action:disabled{opacity:0.4;cursor:not-allowed;}
     .card-action[data-action="internet"]{border-color:color-mix(in oklab,var(--color-text) 22%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--color-text) 8%, transparent)}
-    .card-action:nth-last-child(-n+2){border-bottom:none}
+    
     .empty{padding:var(--space-8);text-align:center;background:var(--color-surface);border-radius:var(--radius-2xl);border:1px dashed color-mix(in oklab,var(--color-text) 16%, transparent);color:var(--color-text-muted)}
     .bottom-console{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,70rem);padding:var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--color-bg) 60%,color-mix(in oklab,var(--color-bg) 82%, transparent));backdrop-filter:blur(10px);z-index:20}
     .console-grid{display:grid;gap:var(--space-3)}
@@ -156,7 +158,6 @@
           <p class="eyebrow">Meal planner</p>
           <h2 id="hero-title">Generate balanced meal options, search nutrition quickly, and find ingredient-based fallbacks online.</h2>
           <p class="subtle">The app now avoids duplicate suggestions in the same batch, marks meals cooked within the last week, and expands surprise/fridge results with unlimited Google and YouTube discovery.</p>
-          
         </div>
         <div class="stats" aria-label="Meal summary">
           <article class="stat"><span class="subtle">Breakfast pool</span><strong id="countBreakfast">0</strong></article>
@@ -390,6 +391,7 @@
       return source[Math.floor(Math.random() * source.length)];
     }
 
+    // Updated buildCard to support history tracking
     function buildCard(time, name, extra = {}) {
       return {
         time,
@@ -398,7 +400,9 @@
         isLocked: !!extra.isLocked,
         cookedRecently: !!cookedWithinAWeek(name),
         internetHint: extra.internetHint || '',
-        sourceType: extra.sourceType || 'database'
+        sourceType: extra.sourceType || 'database',
+        history: extra.history || [name],
+        historyIndex: extra.historyIndex !== undefined ? extra.historyIndex : 0
       };
     }
 
@@ -433,13 +437,19 @@
             <div id="inline-slot-${index}"></div>
           </div>
           <div class="meal-actions">
-            <button class="card-action" type="button" data-action="lock" data-index="${index}">${item.isLocked ? 'Confirmed' : 'I\'ll eat it'}</button>
-            <button class="card-action" type="button" data-action="change" data-index="${index}" ${item.isLocked ? 'disabled' : ''}>Change</button>
+            <button class="card-action" type="button" data-action="prev" data-index="${index}" ${item.historyIndex > 0 && !item.isLocked ? '' : 'disabled'}>Previous</button>
+            <button class="card-action" type="button" data-action="next" data-index="${index}" ${item.isLocked ? 'disabled' : ''}>Next</button>
+            
+            <button class="card-action full-width-btn" type="button" data-action="lock" data-index="${index}">
+              ${item.isLocked ? 'Confirmed (Click to Deselect)' : 'I\'ll eat it'}
+            </button>
+
             <button class="card-action" type="button" data-action="google" data-index="${index}">Google recipe</button>
             <button class="card-action" type="button" data-action="youtube" data-index="${index}">YouTube recipe</button>
             <button class="card-action" type="button" data-action="nutrition" data-index="${index}">Nutrition info</button>
             <button class="card-action" type="button" data-action="internet" data-index="${index}">Alternatives</button>
-            <button class="card-action add-db-btn" type="button" data-action="save-db" data-index="${index}">Add to database</button>
+            
+            <button class="card-action full-width-btn" type="button" data-action="save-db" data-index="${index}">Add to database</button>
           </div>`;
         els.suggestions.appendChild(article);
       });
@@ -482,31 +492,67 @@
       ]);
     }
 
-    async function refreshSpecificCategoryCard(index) {
+    // Handles both Previous and Next behavior through history
+    async function refreshSpecificCategoryCard(index, direction = 'next') {
       const card = state.currentSuggestions[index];
       if (!card || card.isLocked) return;
+
+      if (direction === 'prev') {
+        if (card.historyIndex > 0) {
+          card.historyIndex--;
+          card.name = card.history[card.historyIndex];
+          card.cookedRecently = !!cookedWithinAWeek(card.name);
+          renderOutputDeck(state.currentSuggestions);
+        }
+        return;
+      }
+      
+      // Moving Forward
+      if (card.historyIndex < card.history.length - 1) {
+        card.historyIndex++;
+        card.name = card.history[card.historyIndex];
+        card.cookedRecently = !!cookedWithinAWeek(card.name);
+        renderOutputDeck(state.currentSuggestions);
+        return;
+      }
+
+      // Generate completely new option
       const cleanKey = card.time.split(' ')[0].toLowerCase();
       const used = state.currentSuggestions.filter((_, i) => i !== index).map(item => item.name);
+      
       let newMealName;
       if (card.isSurprise) {
         newMealName = await fetchSurpriseMealFromInternet();
-        state.currentSuggestions[index] = buildCard(card.time, newMealName, { isSurprise: true, internetHint: 'Live Internet Fetch', sourceType: 'surprise' });
       } else {
         newMealName = pickUniqueMeal(state.db[cleanKey], used);
-        state.currentSuggestions[index] = buildCard(card.time, newMealName, { isLocked: false, sourceType: 'database' });
       }
+      
+      // Update history arrays seamlessly
+      card.history.push(newMealName);
+      card.historyIndex++;
+      card.name = newMealName;
+      card.cookedRecently = !!cookedWithinAWeek(newMealName);
+      
       renderOutputDeck(state.currentSuggestions);
     }
 
+    // Updated to Toggle Lock State
     function lockChoiceIntoExclusionMemory(index) {
       const card = state.currentSuggestions[index];
-      if (!card || card.isLocked) return;
-      card.isLocked = true;
-      logSingleMealSelection(card.name, card.time.split(' ')[0]);
-      renderOutputDeck(state.currentSuggestions);
-      if (card.cookedRecently) {
-        alert(`${card.name} was also cooked within the last 7 days.`);
+      if (!card) return;
+      
+      if (card.isLocked) {
+        // Unlock it
+        card.isLocked = false;
+      } else {
+        // Lock it
+        card.isLocked = true;
+        logSingleMealSelection(card.name, card.time.split(' ')[0]);
+        if (card.cookedRecently) {
+          alert(`${card.name} was also cooked within the last 7 days.`);
+        }
       }
+      renderOutputDeck(state.currentSuggestions);
     }
 
     function enableInlineCardEditing(index) {
@@ -524,16 +570,25 @@
       document.getElementById(`inline-input-${index}`).focus();
     }
 
+    // Updated to respect history changes
     function commitInlineCardUpdate(index, category, oldValue) {
       const input = document.getElementById(`inline-input-${index}`);
       if (!input) return;
       const newValue = input.value.trim();
       if (!newValue) return;
+      
       const dbIndex = state.db[category].findIndex(v => v === oldValue);
       if (dbIndex >= 0) state.db[category][dbIndex] = newValue;
       else state.db[category].push(newValue);
+      
       dedupeDb();
-      state.currentSuggestions[index] = buildCard(state.currentSuggestions[index].time, newValue, { isSurprise: state.currentSuggestions[index].isSurprise });
+      
+      // Overwrite the current spot in history to match inline edit
+      const card = state.currentSuggestions[index];
+      card.name = newValue;
+      card.history[card.historyIndex] = newValue;
+      card.cookedRecently = !!cookedWithinAWeek(newValue);
+      
       refreshCounts();
       renderSpreadsheetModal();
       renderOutputDeck(state.currentSuggestions);
@@ -583,6 +638,7 @@
         renderSpreadsheetModal();
         state.currentSuggestions[index].name = normalized;
         state.currentSuggestions[index].sourceType = 'database';
+        state.currentSuggestions[index].history[state.currentSuggestions[index].historyIndex] = normalized; 
         renderOutputDeck(state.currentSuggestions);
         alert(normalized + ' added to ' + category + ' database.');
       } else {
@@ -818,15 +874,23 @@
     document.getElementById('fileUploadInput').addEventListener('change', handleFileRouting);
     document.getElementById('cameraCaptureInput').addEventListener('change', handleFileRouting);
 
+    // Event listener updated to handle Prev/Next instead of Change
     els.suggestions.addEventListener('click', async event => {
       const button = event.target.closest('[data-action]');
       if (button) {
         const index = Number(button.dataset.index);
-        if (button.dataset.action === 'change') {
+        
+        if (button.dataset.action === 'prev') {
+          await refreshSpecificCategoryCard(index, 'prev');
+          return;
+        }
+        if (button.dataset.action === 'next') {
           const originalText = button.textContent;
           button.textContent = '...';
-          await refreshSpecificCategoryCard(index);
+          await refreshSpecificCategoryCard(index, 'next');
+          return;
         }
+        
         if (button.dataset.action === 'lock') lockChoiceIntoExclusionMemory(index);
         if (button.dataset.action === 'google') openRecipeSearch(index, 'google');
         if (button.dataset.action === 'youtube') openRecipeSearch(index, 'youtube');
@@ -835,6 +899,7 @@
         if (button.dataset.action === 'internet') openMoreOptions(index);
         return;
       }
+      
       const saveButton = event.target.closest('[data-inline-save]');
       if (saveButton) {
         commitInlineCardUpdate(Number(saveButton.dataset.inlineSave), saveButton.dataset.category, saveButton.dataset.old);
