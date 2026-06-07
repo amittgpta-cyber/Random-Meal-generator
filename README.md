@@ -1,1 +1,1 @@
-# Random-Meal-generator
+# MealSync
