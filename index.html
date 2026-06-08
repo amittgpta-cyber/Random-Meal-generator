@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -566,10 +565,9 @@
                 <span class="badge ${tag.cls}">${tag.text}</span>
               </div>
               <div class="card-header-right">
-  ${item.time.includes('🌍') ? `<button class="badge-btn" type="button" data-action="save-db" data-index="${index}">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    Add to Cookbook
-  </button>` : ''}
+  ${item.time.includes('🌍') ? `<button style="width:32px;height:32px;border-radius:50%;border:1px solid color-mix(in oklab,var(--color-text) 15%,transparent);background:var(--color-surface-offset);display:flex;align-items:center;justify-content:center;flex-shrink:0;" type="button" data-action="save-db" data-index="${index}">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+</button>` : ''}
 </div>
 
             </div>
