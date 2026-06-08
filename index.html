@@ -124,7 +124,6 @@
     .data-section{display:grid;gap:0.75rem}
     .data-row{display:flex;justify-content:space-between;gap:0.75rem;align-items:center;padding:0.75rem 1rem;border:1px solid color-mix(in oklab,var(--color-text) 8%, transparent);border-radius:var(--radius-btn);background:color-mix(in oklab,var(--color-bg) 55%, var(--color-surface)); font-size: 1rem;}
     .data-row span{word-break:break-word}
-    .inline-edit{display:grid;gap:0.75rem;margin-top:0.75rem}
     
     @media (max-width: 700px){
       .shell{padding-bottom:calc(12rem + env(safe-area-inset-bottom))}
@@ -267,7 +266,8 @@
   </div>
 
   <script>
-    const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwnw_zAY55dbbvcyE1jxCVa6PKHcnYbwC6s0XPMPWupzX9GK0jZDZUmK2W0HXbCXVQ0rQ/exec";
+    // LIVE SCRIPT INSTALLED HERE (Will handle GET syncs properly)
+    const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwodycKzlTQlxi2vr4qLDZq2CR-3xOHKc2OgXqV_K0vNmmqy8a4kRdqGU4AnC4NrcZ5Iw/exec";
 
     (() => {
       const themeBtn = document.querySelector('[data-theme-toggle]');
@@ -388,6 +388,7 @@
       return true;
     }
 
+    // UPDATED SYNC FUNCTION: Uses GET to completely bypass CORS blocking issues
     async function submitQueueForApproval() {
       if (pendingApprovals.length === 0) return;
       
@@ -396,26 +397,31 @@
       btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Syncing...`;
       
       try {
-        await fetch(GOOGLE_SHEETS_API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'sync_meals', meals: pendingApprovals })
-        });
-        
-        pendingApprovals.forEach(item => { state.db[item.category].push(item.meal); });
-        dedupeDb();
-        refreshCounts();
-        renderSpreadsheetModal();
+        const url = new URL(GOOGLE_SHEETS_API_URL);
+        url.searchParams.append('action', 'sync_meals');
+        url.searchParams.append('data', JSON.stringify(pendingApprovals));
 
-        pendingApprovals = [];
-        renderReviewQueue();
+        const response = await fetch(url.toString());
+        const result = await response.json();
         
-        btn.innerHTML = "✓ Synced successfully";
-        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        if (result.success) {
+            pendingApprovals.forEach(item => { state.db[item.category].push(item.meal); });
+            dedupeDb();
+            refreshCounts();
+            renderSpreadsheetModal();
+
+            pendingApprovals = [];
+            renderReviewQueue();
+            
+            btn.innerHTML = "✓ Synced successfully";
+            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        } else {
+            throw new Error(result.error || 'Sync Failed');
+        }
       } catch (err) {
         console.error('Failed to sync', err);
         btn.innerHTML = originalText;
+        alert('Sync failed. Please ensure Google Apps Script is updated with the latest code and deployed as a New Version.');
       }
     }
 
@@ -543,22 +549,40 @@
       renderOutputDeck([ buildCard('Breakfast', breakfast), buildCard('Lunch', lunch), buildCard('Dinner', dinner) ]);
     }
 
+    // UPDATED: Fridge Match Fix 
     async function runFridgeMatchingPipeline() {
       const raw = document.getElementById('fridgeIngredientsInput').value.trim();
       if (!raw) return;
       const items = raw.toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
       const findMatches = pool => pool.filter(meal => items.some(ingredient => meal.toLowerCase().includes(ingredient)));
       
-      const b = findMatches(state.db.breakfast)[0] || await fetchSurpriseMealFromInternet();
-      const l = findMatches(state.db.lunch)[0] || await fetchSurpriseMealFromInternet();
-      const d = findMatches(state.db.dinner)[0] || await fetchSurpriseMealFromInternet();
-      
-      const searchQ = encodeURIComponent(`${items.join(' ')} veg recipes`);
-      window.open(`https://www.google.com/search?q=${searchQ}`, '_blank', 'noopener,noreferrer');
-      window.open(`https://www.youtube.com/results?search_query=${searchQ}`, '_blank', 'noopener,noreferrer');
+      const bMatches = findMatches(state.db.breakfast);
+      const lMatches = findMatches(state.db.lunch);
+      const dMatches = findMatches(state.db.dinner);
       
       closeModal(els.fridgeModal);
-      renderOutputDeck([ buildCard('Breakfast', b), buildCard('Lunch', l), buildCard('Dinner', d) ]);
+
+      // Immediately open internet search tabs
+      const searchQ = encodeURIComponent(`${items.join(' ')} recipes`);
+      window.open(`https://www.google.com/search?q=${searchQ}`, '_blank', 'noopener,noreferrer');
+      window.open(`https://www.youtube.com/results?search_query=${searchQ}`, '_blank', 'noopener,noreferrer');
+
+      // Populate with ONLY local database matches
+      const deck = [];
+      if (bMatches.length > 0) deck.push(buildCard('Breakfast', bMatches[Math.floor(Math.random() * bMatches.length)]));
+      if (lMatches.length > 0) deck.push(buildCard('Lunch', lMatches[Math.floor(Math.random() * lMatches.length)]));
+      if (dMatches.length > 0) deck.push(buildCard('Dinner', dMatches[Math.floor(Math.random() * dMatches.length)]));
+
+      if (deck.length > 0) {
+         renderOutputDeck(deck);
+      } else {
+         els.suggestions.innerHTML = `
+          <div class="empty" style="border-color: var(--color-success);">
+            <h3 style="color: var(--color-success);">Internet Search Triggered!</h3>
+            <p class="subtle">We couldn't find any matches in your CookBook for <b>${items.join(', ')}</b>.</p>
+            <p class="subtle" style="margin-top:0.5rem;">New tabs for Google and YouTube have been opened to help you find a recipe. If you find something good, don't forget to add it to your CookBook!</p>
+          </div>`;
+      }
     }
 
     async function refreshSpecificCategoryCard(index, direction = 'next') {
@@ -780,6 +804,7 @@
       if (button.dataset.action === 'nutrition') openNutritionSearch(index);
       if (button.dataset.action === 'internet') openMoreOptions(index);
       
+      // WhatsApp Update
       if (button.dataset.action === 'whatsapp') {
          const card = state.currentSuggestions[index];
          const mealName = card.name;
