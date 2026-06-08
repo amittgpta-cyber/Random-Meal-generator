@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -163,9 +164,9 @@
           <h2 id="hero-title">Plan Your Day</h2>
         </div>
         <div class="stats">
-          <article class="stat"><span class="subtle">Breakfast</span><strong id="countBreakfast">0</strong></article>
-          <article class="stat"><span class="subtle">Lunch</span><strong id="countLunch">0</strong></article>
-          <article class="stat"><span class="subtle">Dinner</span><strong id="countDinner">0</strong></article>
+          <article class="stat" style="cursor:pointer;" data-open-cookbook="breakfast"><span class="subtle">Breakfast</span><strong id="countBreakfast">0</strong></article>
+          <article class="stat" style="cursor:pointer;" data-open-cookbook="lunch"><span class="subtle">Lunch</span><strong id="countLunch">0</strong></article>
+          <article class="stat" style="cursor:pointer;" data-open-cookbook="dinner"><span class="subtle">Dinner</span><strong id="countDinner">0</strong></article>
         </div>
       </section>
 
@@ -181,8 +182,8 @@
 
   <div class="bottom-console">
     <div class="console-grid">
-      <button id="fridgeBtn" class="success-btn" type="button">Fridge Match</button>
-      <button id="surpriseBtn" class="accent-btn" type="button">Chef Special!</button>
+      <button id="fridgeBtn" class="success-btn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Fridge Match</button>
+      <button id="surpriseBtn" class="accent-btn" type="button"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#1a73e8" opacity="0.15"/><circle cx="12" cy="12" r="10" stroke="#1a73e8" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="4.5" ry="10" stroke="#34a853" stroke-width="1.5" fill="none"/><line x1="2" y1="12" x2="22" y2="12" stroke="#fbbc05" stroke-width="1.8"/><line x1="4.5" y1="7" x2="19.5" y2="7" stroke="#ea4335" stroke-width="1.3" opacity="0.7"/><line x1="4.5" y1="17" x2="19.5" y2="17" stroke="#ea4335" stroke-width="1.3" opacity="0.7"/></svg> Chef Special!</button>
       <button id="generateBtn" class="primary-btn" type="button">
         <span style="font-size:1.4rem; line-height:1;">🎲🎲</span> Plan Meals
       </button>
@@ -287,7 +288,7 @@
 
     function getMealTag(name) {
       const low = String(name || '').toLowerCase();
-      const nonVegKeys = ['chicken','fish','mutton','meat','prawn','prawns','goat','beef','pork','bacon','ham','steak','tuna','salmon','lamb','sausage','duck','turkey','veal','anchovy','chorizo','prosciutto','seafood','shrimp','crab','lobster','cod','halibut','sardine','mackerel','oyster','clam','squid','octopus','scallop','pepperoni','salami','pastrami','venison'];
+      const nonVegKeys = ['chicken','fish','mutton','meat','prawn','prawns','goat','beef','pork','bacon','ham','steak','tuna','salmon','lamb','sausage','duck','turkey','veal','anchovy','chorizo','prosciutto','seafood','shrimp','crab','lobster','cod','halibut','sardine','mackerel','oyster','clam','squid','octopus','scallop','pepperoni','salami','pastrami','venison','haddock','tilapia','catfish','trout','pomfret','rohu','hilsa','barramundi','snapper','basa','anchovies','lard','suet','bone broth'];
       const eggKeys = ['egg', 'omelette', 'omelet', 'frittata', 'shakshuka', 'scramble', 'mayonnaise', 'quiche'];
       
       if (nonVegKeys.some(k => low.includes(k))) return { text: 'Non-Veg', cls: 'tag-nonveg' };
@@ -295,32 +296,105 @@
       return { text: 'Veg', cls: 'tag-veg' };
     }
 
-    let cachedGlobalVegMeals = null;
+
+
+    // Chef Special engine – unlimited, never-repeating
+    let chefMealPool = [];
+    let chefUsedSet = new Set();
+    let chefPoolLoaded = false;
+    let chefPoolLoading = false;
+
+    // 200+ world cuisine fallback list so we never run dry
+    const CHEF_FALLBACK = [
+      "Aloo Gobi","Aloo Paratha","Baingan Bharta","Chana Masala","Dal Makhani","Dal Tadka","Dhokla","Dosa","Idli Sambar","Kadai Paneer",
+      "Kadhi Pakora","Khichdi","Malai Kofta","Masala Chai Oats","Methi Thepla","Misal Pav","Mutter Paneer","Palak Paneer","Paneer Butter Masala",
+      "Paneer Tikka","Pav Bhaji","Poha","Rajma Chawal","Rava Dosa","Saag Aloo","Sabudana Khichdi","Sambar Rice","Shahi Paneer","Tarka Dal",
+      "Upma","Uttapam","Vada Pav","Vegetable Biryani","Vegetable Korma","Borscht","Caprese Salad","Falafel","French Onion Soup",
+      "Gazpacho","Greek Salad","Hummus","Italian Ribollita","Minestrone","Nicoise Salad","Panzanella","Pasta Primavera","Pasta e Fagioli",
+      "Pesto Pasta","Pizza Margherita","Ratatouille","Ribollita","Shakshuka","Spanakopita","Tabbouleh","Tzatziki Bowl","Bruschetta",
+      "Capellini Pomodoro","Eggplant Parmigiana","Focaccia","Gnudi","Gnocchi Al Pomodoro","Lasagna Vegetariana","Pappa al Pomodoro",
+      "Pasta Cacio e Pepe","Ribollita Toscana","Risotto ai Funghi","Risotto Primavera","Soupe au Pistou","Tarte Flambée",
+      "Banh Mi Chay","Bibimbap","Congee","Dak Galbi Vegetable","Edamame Rice Bowl","Japanese Curry","Kimchi Fried Rice","Korean Doenjang Jjigae",
+      "Mapo Tofu","Miso Ramen","Nasi Lemak Veg","Pad See Ew","Pad Thai Tofu","Pho Chay","Som Tum","Spring Rolls","Sundubu Jjigae",
+      "Taiwanese Braised Tofu","Teriyaki Tofu Bowl","Thai Basil Fried Rice","Thai Green Curry","Tom Kha Tofu","Tom Yum Soup",
+      "Vietnamese Fresh Rolls","Yellow Curry Tofu","Zaru Soba","Agedashi Tofu","Ankake Udon","Hiyayakko","Inari Sushi","Kare Raisu",
+      "Natto Rice","Okonomiyaki","Oyakodon Veg","Takoyaki Veg","Tempura Udon","Yaki Onigiri",
+      "Ackee and Saltfish Veg","Akara","Bobotie Veg","Bunny Chow Veg","Callaloo","Egusi Soup Veg","Ethiopian Injera Platter",
+      "Fufu and Egusi","Ghanaian Jollof","Harira","Koshari","Maafe Veg","Matoke","Moin Moin","Moroccan Bastilla Veg","Muamba Veg",
+      "Nigerian Pepper Soup Veg","Suya Veg","Tagine Vegetable","Ful Medames","Shakshuka Harissa","Zaalouk",
+      "Bean and Cheese Tacos","Black Bean Soup","Chiles Rellenos","Corn Elote","Empanadas Veg","Enchiladas Verdes","Frijoles Negros",
+      "Guacamole Tostadas","Huevos Rancheros","Pupusas","Quesadillas","Sopa de Lima","Tamales Veg","Tortilla Española",
+      "Avocado Toast","Buddha Bowl","Caesar Salad","Caprese Quinoa","Cauliflower Steak","Chickpea Tacos","Grain Bowl",
+      "Lentil Soup","Mac and Cheese","Mushroom Burger","Portobello Stir Fry","Pumpkin Soup","Stuffed Bell Peppers",
+      "Stuffed Portobello","Sweet Potato Curry","Tomato Basil Soup","Veggie Wrap","Waldorf Salad","White Bean Stew",
+      "Zucchini Fritters","Cauliflower Buffalo Wings","Jackfruit Tacos","Lentil Bolognese","Mushroom Stroganoff",
+      "Smoky Black Bean Chili","Tempeh Stir Fry","Tofu Scramble","Walnut Meat Tacos","Zoodles Marinara"
+    ];
+
+    async function loadChefPool() {
+      if (chefPoolLoading || chefPoolLoaded) return;
+      chefPoolLoading = true;
+      try {
+        // Fetch all MealDB categories in parallel
+        const categories = ['Vegetarian','Vegan','Pasta','Breakfast','Side','Starter','Dessert','Miscellaneous','Goat'];
+        const results = await Promise.allSettled(
+          categories.map(c => fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${c}`).then(r => r.json()))
+        );
+        let meals = [];
+        results.forEach(r => {
+          if (r.status === 'fulfilled' && r.value.meals) {
+            meals = meals.concat(r.value.meals.map(m => m.strMeal));
+          }
+        });
+
+        // Also search by first letter across all letters for maximum variety
+        const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+        const letterResults = await Promise.allSettled(
+          letters.map(l => fetch(`https://www.themealdb.com/api/json/v1/1/search.php?f=${l}`).then(r => r.json()))
+        );
+        letterResults.forEach(r => {
+          if (r.status === 'fulfilled' && r.value.meals) {
+            meals = meals.concat(r.value.meals.map(m => m.strMeal));
+          }
+        });
+
+        // Dedupe, filter non-veg, shuffle
+        const unique = [...new Set(meals)].filter(n => getMealTag(n).text !== 'Non-Veg');
+        // Fisher-Yates shuffle
+        for (let i = unique.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [unique[i], unique[j]] = [unique[j], unique[i]];
+        }
+        chefMealPool = unique.length > 0 ? unique : [...CHEF_FALLBACK];
+        chefPoolLoaded = true;
+      } catch {
+        chefMealPool = [...CHEF_FALLBACK];
+        chefPoolLoaded = true;
+      }
+      chefPoolLoading = false;
+    }
 
     async function fetchSurpriseMealFromInternet() {
-      try {
-        if (!cachedGlobalVegMeals) {
-          const vegRes = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegetarian');
-          const vegData = await vegRes.json();
-          let meals = vegData.meals ? vegData.meals.map(m => m.strMeal) : [];
+      // Ensure pool is loaded
+      if (!chefPoolLoaded) await loadChefPool();
 
-          const breakfastRes = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=Breakfast');
-          const breakfastData = await breakfastRes.json();
-          if (breakfastData.meals) {
-            meals = meals.concat(breakfastData.meals.map(m => m.strMeal));
-          }
+      // Pick a meal not yet used in this session
+      const available = chefMealPool.filter(m => !chefUsedSet.has(m));
 
-          if (meals.length > 0) {
-            cachedGlobalVegMeals = meals.filter(name => getMealTag(name).text !== 'Non-Veg');
-          }
+      // If all used, reset used set but keep pool (start cycling again fresh)
+      if (available.length === 0) {
+        chefUsedSet.clear();
+        // Shuffle pool again for variety
+        for (let i = chefMealPool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [chefMealPool[i], chefMealPool[j]] = [chefMealPool[j], chefMealPool[i]];
         }
-        if (cachedGlobalVegMeals && cachedGlobalVegMeals.length > 0) {
-          return cachedGlobalVegMeals[Math.floor(Math.random() * cachedGlobalVegMeals.length)];
-        }
-        return "Classic Omelette"; 
-      } catch {
-        return "Classic Omelette"; 
+        return fetchSurpriseMealFromInternet();
       }
+
+      const pick = available[Math.floor(Math.random() * available.length)];
+      chefUsedSet.add(pick);
+      return pick;
     }
 
     const state = {
@@ -328,7 +402,8 @@
       cookingHistory: [],
       aiWeights: {},
       currentSuggestions: [],
-      foodMode: 'veg'
+      foodMode: 'veg',
+      chefMode: false
     };
 
     const els = {
@@ -488,11 +563,12 @@
                 <span class="badge ${tag.cls}">${tag.text}</span>
               </div>
               <div class="card-header-right">
-                 <button class="badge-btn" type="button" data-action="save-db" data-index="${index}">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
-                  Add to Cookbook
-                </button>
-              </div>
+  ${item.time.includes('🌍') ? `<button class="badge-btn" type="button" data-action="save-db" data-index="${index}">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    Add to Cookbook
+  </button>` : ''}
+</div>
+
             </div>
             
             <div class="meal-title">${escapeHtml(item.name)}</div>
@@ -589,8 +665,21 @@
       const card = state.currentSuggestions[index];
       if (!card || card.isLocked) return;
 
+      const isChefCard = state.chefMode || card.time.includes('🌍') || card.time.includes('Internet');
+
+      // Chef Special: ALWAYS fetch a fresh name from the internet — skip history entirely
+      if (direction === 'next' && isChefCard) {
+        const newMealName = await fetchSurpriseMealFromInternet();
+        card.history.push(newMealName);
+        card.historyIndex = card.history.length - 1;
+        card.name = newMealName;
+        card.cookedRecently = !!cookedWithinAWeek(newMealName);
+        renderOutputDeck(state.currentSuggestions);
+        return;
+      }
+
       if (direction === 'prev') {
-        if (card.historyIndex > 0) {
+        if (!isChefCard && card.historyIndex > 0) {
           card.historyIndex--;
           card.name = card.history[card.historyIndex];
           card.cookedRecently = !!cookedWithinAWeek(card.name);
@@ -598,7 +687,8 @@
         }
         return;
       }
-      
+
+      // Normal cards: replay history first, then pick fresh from sheet
       if (card.historyIndex < card.history.length - 1) {
         card.historyIndex++;
         card.name = card.history[card.historyIndex];
@@ -607,18 +697,11 @@
         return;
       }
 
-      const cleanKey = card.time.split(' ')[0].toLowerCase();
+      const cleanKey = card.time.replace('🌍 ', '').split(' ')[0].toLowerCase();
       const used = state.currentSuggestions.filter((_, i) => i !== index).map(item => item.name);
-      
-      let newMealName;
-      if (card.time.includes('Internet')) {
-        newMealName = await fetchSurpriseMealFromInternet();
-      } else {
-        newMealName = pickUniqueMeal(state.db[cleanKey], used);
-      }
-      
+      const newMealName = pickUniqueMeal(state.db[cleanKey], used);
       card.history.push(newMealName);
-      card.historyIndex++;
+      card.historyIndex = card.history.length - 1;
       card.name = newMealName;
       card.cookedRecently = !!cookedWithinAWeek(newMealName);
       renderOutputDeck(state.currentSuggestions);
@@ -660,6 +743,7 @@
       categories.forEach(category => {
         const section = document.createElement('section');
         section.className = 'panel data-section';
+        section.setAttribute('data-section', category);
         const title = document.createElement('h5');
         title.textContent = `${category.toUpperCase()} · ${state.db[category].length}`;
         section.appendChild(title);
@@ -768,13 +852,16 @@
     function closeModal(modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
     function escapeHtml(str) { return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
-    document.getElementById('generateBtn').addEventListener('click', generateDefaultSuggestions);
+    document.getElementById('generateBtn').addEventListener('click', () => { state.chefMode = false; generateDefaultSuggestions(); });
     document.getElementById('submitApprovalBtn').addEventListener('click', submitQueueForApproval);
     
     document.getElementById('surpriseBtn').addEventListener('click', async function() {
-      els.suggestions.innerHTML = '<div class="empty"><h3>Fetching global inspirations...</h3></div>';
+      state.chefMode = true;
+      // Reset used set for a fresh session each time Chef Special is tapped
+      chefUsedSet.clear();
+      els.suggestions.innerHTML = '<div class="empty"><h3>🌍 Fetching global inspirations...</h3><p class="subtle" style="margin-top:0.5rem;">Searching world cuisine database...</p></div>';
       const [b, l, d] = await Promise.all([ fetchSurpriseMealFromInternet(), fetchSurpriseMealFromInternet(), fetchSurpriseMealFromInternet() ]);
-      renderOutputDeck([ buildCard("Breakfast", b), buildCard("Lunch", l), buildCard("Dinner", d) ]);
+      renderOutputDeck([ buildCard("🌍 Breakfast", b), buildCard("🌍 Lunch", l), buildCard("🌍 Dinner", d) ]);
     });
 
     document.getElementById('fridgeBtn').addEventListener('click', () => openModal(els.fridgeModal));
@@ -816,10 +903,13 @@
 
       if (button.dataset.action === 'save-db') {
         const card = state.currentSuggestions[index];
-        const category = card.time.split(' ')[0].toLowerCase();
+        const rawTime = card.time.replace(/^[^a-zA-Z]+/, '').trim();
+const category = rawTime.split(' ')[0].toLowerCase();
+
         const normalized = normalizeSuggestionToMealName(card.name);
         
-        if (normalized && normalized.length > 2) {
+        if (normalized && normalized.length > 2 && ['breakfast','lunch','dinner'].includes(category)) {
+
            const success = queueMealForApproval(category, normalized);
            if (success) {
                button.classList.add('added');
@@ -830,6 +920,18 @@
     });
 
     [els.dataModal, els.fridgeModal].forEach(modal => modal.addEventListener('click', event => { if (event.target === modal) closeModal(modal); }));
+    document.querySelectorAll('[data-open-cookbook]').forEach(stat => {
+      stat.addEventListener('click', () => {
+        const category = stat.dataset.openCookbook;
+        openModal(els.dataModal);
+        renderSpreadsheetModal();
+        setTimeout(() => {
+          const target = els.tableSections.querySelector(`[data-section="${category}"]`);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      });
+    });
+
     document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeModal(els.dataModal); closeModal(els.fridgeModal); } });
 
     async function loadFromGoogleSheets() {
@@ -853,6 +955,7 @@
       }
     }
     loadFromGoogleSheets();
+    loadChefPool(); // preload chef meal pool in background
   </script>
 </body>
 </html>
