@@ -960,5 +960,10 @@ const category = rawTime.split(' ')[0].toLowerCase();
     loadFromGoogleSheets();
     loadChefPool(); // preload chef meal pool in background
   </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/Meal-generator/sw.js');
+  }
+  </script>
 </body>
 </html>
