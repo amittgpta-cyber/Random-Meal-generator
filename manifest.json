@@ -1,0 +1,16 @@
+{
+  "name": "Meal Sync Pro",
+  "short_name": "MealSync",
+  "start_url": "/YOUR-REPO-NAME/meal-sync-pro-v4-final.html",
+  "scope": "/Meal-generator/",
+  "display": "standalone",
+  "background_color": "#171614",
+  "theme_color": "#171614",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
